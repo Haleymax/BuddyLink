@@ -3,6 +3,7 @@ package main
 import (
 	"buddylink/config"
 	"buddylink/internal/routers"
+	"buddylink/pkg/database"
 	"github.com/gin-gonic/gin"
 	"log"
 	"os"
@@ -14,8 +15,12 @@ func main() {
 	r := gin.Default()
 
 	config := config.LoadConfig()
-
-	routers.SetupRouter(r, config)
+	db, err := database.InitDB(config.MySQL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer database.CloseDB()
+	routers.SetupRouter(r, config, db)
 
 	go func() {
 		if err := r.Run(config.Server.Port); err != nil {
