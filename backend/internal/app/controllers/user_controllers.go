@@ -72,3 +72,30 @@ func (uc *UserController) AddUser(c *gin.Context) {
 		"status":  true,
 	})
 }
+
+func (uc *UserController) DeleteUser(c *gin.Context) {
+	var user models.User
+	if err := c.ShouldBind(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+			"status":  false,
+		})
+		return
+	}
+
+	err := uc.userService.DeleteUser(user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+			"status":  false,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "success delete user",
+		"status":  true,
+	})
+}

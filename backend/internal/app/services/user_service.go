@@ -10,6 +10,7 @@ import (
 type UserService interface {
 	CreateUserTable() error
 	AddUser(user models.User) error
+	DeleteUser(user models.User) error
 }
 
 type UserServiceImpl struct {
@@ -36,6 +37,27 @@ func (u *UserServiceImpl) AddUser(user models.User) error {
 	}
 	if err = u.UserRepo.Insert(user); err != nil {
 		log.Println("failed to insert user", err.Error())
+	}
+	return nil
+}
+
+func (u *UserServiceImpl) DeleteUser(user models.User) error {
+	exis, err := u.UserRepo.Exist(user)
+	if err != nil {
+		return err
+	}
+	if !exis {
+		return fmt.Errorf("user not exists")
+	}
+
+	dbUser, err := u.UserRepo.FindById(user.Uuid)
+
+	if err != nil {
+		return err
+	}
+
+	if err = u.UserRepo.Delete(dbUser); err != nil {
+		return err
 	}
 	return nil
 }

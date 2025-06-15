@@ -14,7 +14,7 @@ type UserRepository interface {
 	Exist(user models.User) (bool, error)
 	Delete(user models.User) error
 	Update(user models.User) error
-	FindById(uuid uint) (models.User, error)
+	FindById(uuid string) (models.User, error)
 	FindByEmail(email string) (models.User, error)
 	FindByUsername(username string) ([]models.User, error)
 	FindAll() ([]models.User, error)
@@ -35,8 +35,8 @@ func (r *UserRepositoryImpl) CreateTable() error {
 }
 
 func (r *UserRepositoryImpl) Delete(user models.User) error {
-	//TODO implement me
-	panic("implement me")
+	// 删除用户，目前根据用户的id去删除用户
+	return r.db.Where("id = ?", user.ID).Delete(&models.User{}).Error
 }
 
 func (r *UserRepositoryImpl) Update(user models.User) error {
@@ -44,9 +44,10 @@ func (r *UserRepositoryImpl) Update(user models.User) error {
 	panic("implement me")
 }
 
-func (r *UserRepositoryImpl) FindById(uuid uint) (models.User, error) {
-	//TODO implement me
-	panic("implement me")
+func (r *UserRepositoryImpl) FindById(uuid string) (models.User, error) {
+	var user models.User
+	err := r.db.Where("uuid = ?", uuid).First(&user).Error
+	return user, err
 }
 
 func (r *UserRepositoryImpl) FindByEmail(email string) (models.User, error) {
@@ -70,7 +71,7 @@ func (r *UserRepositoryImpl) Insert(user models.User) error {
 func (r *UserRepositoryImpl) Exist(user models.User) (bool, error) {
 	var count int64
 
-	// 一次性检查邮箱或UUID是否存在
+	// 性检查邮箱或UUID是否存在
 	err := r.db.Model(&models.User{}).
 		Where("email = ? OR uuid = ?", user.Email, user.Uuid).
 		Count(&count).Error

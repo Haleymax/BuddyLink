@@ -9,6 +9,8 @@ type User struct {
 	PasswordHash string    `gorm:"size:255;not null" json:"password"`
 	Username     string    `gorm:"size:255;not null" json:"username"`
 	Avatar       string    `gorm:"size:255;" json:"avatar"`
+	Role         string    `gorm:"size:255;not null;default:'user'" json:"role"`
+	Status       string    `gorm:"size:255;default:'active'" json:"-"`
 	LastLoginAt  time.Time `gorm:"type:timestamp(3);default:CURRENT_TIMESTAMP(3)" json:"-"`
 	LastLoginIp  string    `gorm:"size:255;" json:"-"`
 }
