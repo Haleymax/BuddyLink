@@ -34,5 +34,6 @@ func SetupRouter(router *gin.Engine, config config.Config, db *gorm.DB) {
 	{
 		user.POST("/add", userController.AddUser)
 		user.DELETE("/delete", userController.DeleteUser)
+		user.PUT("/update", userController.UpdateUser)
 	}
 }

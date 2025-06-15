@@ -11,6 +11,7 @@ type UserService interface {
 	CreateUserTable() error
 	AddUser(user models.User) error
 	DeleteUser(user models.User) error
+	UpdateUser(user models.User) error
 }
 
 type UserServiceImpl struct {
@@ -50,13 +51,24 @@ func (u *UserServiceImpl) DeleteUser(user models.User) error {
 		return fmt.Errorf("user not exists")
 	}
 
-	dbUser, err := u.UserRepo.FindById(user.Uuid)
-
+	dbUser, err := u.UserRepo.FindByUuid(user.Uuid)
 	if err != nil {
 		return err
 	}
 
 	if err = u.UserRepo.Delete(dbUser); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *UserServiceImpl) UpdateUser(user models.User) error {
+	dbUser, err := u.UserRepo.FindById(user.ID)
+	if err != nil {
+		return err
+	}
+	err = u.UserRepo.Update(dbUser, user)
+	if err != nil {
 		return err
 	}
 	return nil

@@ -13,8 +13,9 @@ type UserRepository interface {
 	Insert(user models.User) error
 	Exist(user models.User) (bool, error)
 	Delete(user models.User) error
-	Update(user models.User) error
-	FindById(uuid string) (models.User, error)
+	Update(oldData, NewDate models.User) error
+	FindById(id uint64) (models.User, error)
+	FindByUuid(uuid string) (models.User, error)
 	FindByEmail(email string) (models.User, error)
 	FindByUsername(username string) ([]models.User, error)
 	FindAll() ([]models.User, error)
@@ -39,12 +40,18 @@ func (r *UserRepositoryImpl) Delete(user models.User) error {
 	return r.db.Where("id = ?", user.ID).Delete(&models.User{}).Error
 }
 
-func (r *UserRepositoryImpl) Update(user models.User) error {
-	//TODO implement me
-	panic("implement me")
+func (r *UserRepositoryImpl) Update(oldData, NewDate models.User) error {
+	err := r.db.Model(&oldData).Updates(NewDate).Error
+	return err
 }
 
-func (r *UserRepositoryImpl) FindById(uuid string) (models.User, error) {
+func (r *UserRepositoryImpl) FindById(id uint64) (models.User, error) {
+	var user models.User
+	err := r.db.Where("id = ?", id).First(&user).Error
+	return user, err
+}
+
+func (r *UserRepositoryImpl) FindByUuid(uuid string) (models.User, error) {
 	var user models.User
 	err := r.db.Where("uuid = ?", uuid).First(&user).Error
 	return user, err
