@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Server ServerConfig `mapstructure:"server"`
 	MySQL  MySQLConfig  `mapstructure:"mysql"`
+	Minio  MinioConfig  `mapstructure:"minio"`
 }
 
 func LoadConfig() Config {

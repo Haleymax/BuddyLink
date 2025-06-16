@@ -13,7 +13,7 @@ import (
 
 func main() {
 	r := gin.Default()
-
+	
 	config := config.LoadConfig()
 	db, err := database.InitDB(config.MySQL)
 	if err != nil {
