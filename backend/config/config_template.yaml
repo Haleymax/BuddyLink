@@ -8,3 +8,9 @@ mysql:
   user: "user"
   password: "password"
   dbname: "BuddyLink"
+
+minio:
+  endpoint: "http://127.0.0.1:9000"
+  access_key_id: "admin"
+  secret_access_key: "admin"
+  use_ssl: false
