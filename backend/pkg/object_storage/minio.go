@@ -9,10 +9,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 type MinioClient interface {
 	UploadFileToBucket(bucket string, filename string, reader io.Reader) error
+	GetUrl(bucket string, filename string) (string, error)
 	DeleteFileFormBucket(bucket, filename string) error
 }
 
@@ -61,6 +63,37 @@ func (m *MinioImpl) UploadFileToBucket(bucket string, filename string, reader io
 	}
 	log.Println("Successfully uploaded file: ", filename)
 	return nil
+}
+
+func (m *MinioImpl) GetUrl(bucket string, filename string) (string, error) {
+	/*
+		获取文件访问的URL
+	*/
+
+	exists, err := m.client.BucketExists(m.ctx, bucket)
+	if err != nil {
+		return "", err
+	}
+	if !exists {
+		return "", fmt.Errorf("bucket does not exist")
+	}
+
+	// 检查文件是否存在
+	_, err = m.client.StatObject(m.ctx, bucket, filename, minio.StatObjectOptions{})
+	if err != nil {
+		if minio.ToErrorResponse(err).StatusCode == http.StatusNotFound {
+			return "", fmt.Errorf("file not found")
+		}
+		log.Printf("Error getting file %s: %s", filename, err)
+		return "", err
+	}
+
+	url, err := m.client.PresignedGetObject(m.ctx, bucket, filename, time.Hour*24*365*10, nil)
+	if err != nil {
+		log.Printf("Error getting file %s: %s", filename, err)
+		return "", err
+	}
+	return url.String(), nil
 }
 
 func (m *MinioImpl) DeleteFileFormBucket(bucket, filename string) error {
