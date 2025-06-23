@@ -14,3 +14,9 @@ minio:
   access_key_id: "admin"
   secret_access_key: "admin"
   use_ssl: false
+
+smtp:
+  email: "test@xxx.com"
+  password: "root"
+  Host: "smtp.xxx.com"
+  Port: "25"
