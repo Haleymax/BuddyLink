@@ -20,3 +20,7 @@ smtp:
   password: "root"
   Host: "smtp.xxx.com"
   Port: "25"
+
+redis:
+  host: "127.0.0.1"
+  port: "27017"

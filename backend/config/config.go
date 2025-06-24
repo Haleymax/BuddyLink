@@ -12,6 +12,7 @@ type Config struct {
 	MySQL  MySQLConfig  `mapstructure:"mysql"`
 	Minio  MinioConfig  `mapstructure:"minio"`
 	SMTP   SMTPConfig   `mapstructure:"smtp"`
+	Redis  RedisConfig  `mapstructure:"redis"`
 }
 
 func LoadConfig() Config {
