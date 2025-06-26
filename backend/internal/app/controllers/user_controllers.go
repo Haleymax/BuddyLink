@@ -10,6 +10,7 @@ import (
 
 type UserController struct {
 	userService services.UserService
+	stmpService services.StmpService
 }
 
 func NewUserController(userService services.UserService) *UserController {
@@ -124,4 +125,16 @@ func (uc *UserController) UpdateUser(c *gin.Context) {
 		"message": "success update user",
 		"status":  true,
 	})
+}
+
+func (uc *UserController) SendVerificationCode(c *gin.Context) {
+	email := c.PostForm("email")
+	if email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "email is empty",
+			"status":  false,
+		})
+	}
+	uc.stmpService.SendVerification()
 }

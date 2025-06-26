@@ -7,12 +7,12 @@ import (
 )
 
 type EmailClient interface {
-	SendMail(from string, to string, subject, content string) error
+	SendMail(to string, subject, content string) error
 	Close() error
 }
 
 type EmailClientImpl struct {
-	cfg    *config.SMTPConfig
+	Cfg    *config.SMTPConfig
 	client *smtp.Client
 }
 
@@ -28,15 +28,15 @@ func NewEmailClient(cfg *config.SMTPConfig) (EmailClient, error) {
 		return nil, err
 	}
 	return &EmailClientImpl{
-		cfg:    cfg,
+		Cfg:    cfg,
 		client: conn,
 	}, nil
 }
 
-func (e EmailClientImpl) SendMail(from string, to string, subject, content string) error {
+func (e EmailClientImpl) SendMail(to string, subject, content string) error {
 
 	// 设置发件人
-	if err := e.client.Mail(from); err != nil {
+	if err := e.client.Mail(e.Cfg.Email); err != nil {
 		return err
 	}
 
@@ -53,7 +53,7 @@ func (e EmailClientImpl) SendMail(from string, to string, subject, content strin
 	defer w.Close()
 
 	// 构造邮件头
-	headers := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n", from, to[0], subject)
+	headers := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n", e.Cfg.Email, to[0], subject)
 
 	// 写入邮件内容
 	if _, err = fmt.Fprintf(w, "%s%s", headers, content); err != nil {
