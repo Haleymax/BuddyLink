@@ -3,7 +3,9 @@ package controllers
 import (
 	"buddylink/internal/app/models"
 	"buddylink/internal/app/services"
+	"buddylink/pkg/cache_client"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"time"
 )
@@ -13,9 +15,10 @@ type UserController struct {
 	stmpService services.StmpService
 }
 
-func NewUserController(userService services.UserService) *UserController {
+func NewUserController(userService services.UserService, stmpService services.StmpService) *UserController {
 	return &UserController{
 		userService: userService,
+		stmpService: stmpService,
 	}
 }
 
@@ -136,5 +139,27 @@ func (uc *UserController) SendVerificationCode(c *gin.Context) {
 			"status":  false,
 		})
 	}
-	uc.stmpService.SendVerification()
+	redisClient, err := cache_client.GetRedisClient()
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+			"status":  false,
+		})
+		return
+	}
+
+	go func() {
+		err := uc.stmpService.SendVerification(email, redisClient)
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "send verification code, if not received, please try again later.",
+		"status":  true,
+	})
 }

@@ -18,8 +18,9 @@ minio:
 smtp:
   email: "test@xxx.com"
   password: "root"
-  Host: "smtp.xxx.com"
-  Port: "25"
+  host: "smtp.xxx.com"
+  port: "25"
+  ssl: true
 
 redis:
   host: "127.0.0.1"
