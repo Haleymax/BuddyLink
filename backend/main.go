@@ -3,6 +3,7 @@ package main
 import (
 	"buddylink/config"
 	"buddylink/internal/routers"
+	"buddylink/pkg/cache_client"
 	"buddylink/pkg/database"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -13,13 +14,23 @@ import (
 
 func main() {
 	r := gin.Default()
-	
 	config := config.LoadConfig()
 	db, err := database.InitDB(config.MySQL)
-	if err != nil {
-		log.Fatal(err)
-	}
 	defer database.CloseDB()
+
+	err = cache_client.NewRedisClient(config.Redis)
+	if err != nil {
+		log.Println("redis init err:", err)
+		panic(err)
+	}
+
+	defer func() {
+		err := cache_client.Close()
+		if err != nil {
+			log.Println("redis close err:", err)
+		}
+	}()
+
 	routers.SetupRouter(r, config, db)
 
 	go func() {

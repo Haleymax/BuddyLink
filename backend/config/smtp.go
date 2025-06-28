@@ -5,4 +5,5 @@ type SMTPConfig struct {
 	Password string `mapstructure:"password"`
 	Host     string `mapstructure:"host"`
 	Port     string `mapstructure:"port"`
+	SSL      bool   `mapstructure:"ssl"`
 }

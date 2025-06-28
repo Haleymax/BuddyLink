@@ -4,8 +4,15 @@ import (
 	"buddylink/config"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/redis/go-redis/v9"
+	"sync"
 	"time"
+)
+
+var (
+	once        sync.Once
+	redisClient RedisClient
 )
 
 type RedisClient interface {
@@ -19,9 +26,10 @@ type redisClientImpl struct {
 	Client *redis.Client
 }
 
-func NewRedisClient(cfg config.RedisConfig) (RedisClient, error) {
+func NewRedisClient(cfg config.RedisConfig) error {
+	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 	client := redis.NewClient(&redis.Options{
-		Addr:         cfg.Host,
+		Addr:         addr,
 		Password:     cfg.Password,
 		DB:           cfg.Db,
 		DialTimeout:  5 * time.Second,
@@ -33,12 +41,13 @@ func NewRedisClient(cfg config.RedisConfig) (RedisClient, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if _, err := client.Ping(ctx).Result(); err != nil {
-		return nil, err
+		return err
 	}
 
-	return &redisClientImpl{
+	redisClient = redisClientImpl{
 		client,
-	}, nil
+	}
+	return nil
 }
 
 func (r redisClientImpl) Get(key string) ([]byte, error) {
@@ -69,4 +78,15 @@ func (r redisClientImpl) Del(key string) error {
 
 func (r redisClientImpl) Close() error {
 	return r.Client.Close()
+}
+
+func Close() error {
+	return redisClient.Close()
+}
+
+func GetRedisClient() (RedisClient, error) {
+	if redisClient == nil {
+		return nil, errors.New("redis client is nil")
+	}
+	return redisClient, nil
 }

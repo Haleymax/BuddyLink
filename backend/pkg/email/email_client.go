@@ -2,6 +2,7 @@ package email
 
 import (
 	"buddylink/config"
+	"crypto/tls"
 	"fmt"
 	"net/smtp"
 )
@@ -17,10 +18,24 @@ type EmailClientImpl struct {
 }
 
 func NewEmailClient(cfg *config.SMTPConfig) (EmailClient, error) {
-	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
-	conn, err := smtp.Dial(addr)
-	if err != nil {
-		return nil, err
+	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
+	var conn *smtp.Client
+	var err error
+	if cfg.SSL {
+		tlsConfig := &tls.Config{
+			ServerName: cfg.Host,
+			MinVersion: tls.VersionTLS12,
+		}
+		tlsconn, terr := tls.Dial("tcp", addr, tlsConfig)
+		if terr != nil {
+			return nil, terr
+		}
+		conn, err = smtp.NewClient(tlsconn, cfg.Host)
+	} else {
+		conn, err = smtp.Dial(addr)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	auth := smtp.PlainAuth("", cfg.Email, cfg.Password, cfg.Host)
