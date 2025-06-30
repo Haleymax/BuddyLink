@@ -12,6 +12,7 @@ type UserService interface {
 	AddUser(user models.User) error
 	DeleteUser(user models.User) error
 	UpdateUser(user models.User) error
+	RegisterUser(user models.User) error
 }
 
 type UserServiceImpl struct {
@@ -71,5 +72,23 @@ func (u *UserServiceImpl) UpdateUser(user models.User) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (u *UserServiceImpl) RegisterUser(user models.User) error {
+	exis, err := u.UserRepo.Exist(user)
+	if err != nil {
+		log.Println("failed to check user existence", err.Error())
+		return err
+	}
+	if exis {
+		log.Println("user already exists")
+		return fmt.Errorf("user already exists")
+	}
+	if err = u.UserRepo.Insert(user); err != nil {
+		log.Println("failed to insert user", err.Error())
+		return err
+	}
+	log.Println("user registered successfully")
 	return nil
 }

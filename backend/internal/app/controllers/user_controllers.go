@@ -4,10 +4,11 @@ import (
 	"buddylink/internal/app/models"
 	"buddylink/internal/app/services"
 	"buddylink/pkg/cache_client"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserController struct {
@@ -162,4 +163,77 @@ func (uc *UserController) SendVerificationCode(c *gin.Context) {
 		"message": "send verification code, if not received, please try again later.",
 		"status":  true,
 	})
+}
+
+func (uc *UserController) Register(c *gin.Context) {
+	emil := c.PostForm("email")
+	userName := c.PostForm("username")
+	password := c.PostForm("password")
+	verificationCode := c.PostForm("verification_code")
+	if emil == "" || userName == "" || password == "" || verificationCode == "" {
+		log.Println("email or username or password or verification_code is empty")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "email or username or password or verification_code is empty",
+			"status":  false,
+		})
+		return
+	}
+
+	redis_client, err := cache_client.GetRedisClient()
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+			"status":  false,
+		})
+		return
+
+	}
+
+	verificationCode_check, err := uc.stmpService.VerifyCode(emil, verificationCode, redis_client)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+			"status":  false,
+		})
+		return
+	}
+
+	if !verificationCode_check {
+		log.Println("verification code is not correct")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "verification code is not correct",
+			"status":  false,
+		})
+		return
+	}
+	newUser := models.User{
+		Email:        emil,
+		Username:     userName,
+		PasswordHash: password,
+	}
+
+	err = uc.userService.RegisterUser(newUser)
+	if err != nil {
+		log.Println("failed to register user", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+			"status":  false,
+		})
+		return
+	}
+
+	log.Println("success register user", newUser.Username)
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "success register user",
+		"status":  true,
+	})
+
 }
