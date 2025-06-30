@@ -11,6 +11,7 @@ import (
 
 type StmpService interface {
 	SendVerification(email string, redis cache_client.RedisClient) error
+	VerifyCode(email string, code string, redis cache_client.RedisClient) (bool, error)
 }
 
 type StmpServiceImpl struct {
@@ -46,6 +47,26 @@ func (s *StmpServiceImpl) SendVerification(email string, redis cache_client.Redi
 		return err
 	}
 	return nil
+}
+
+func (s *StmpServiceImpl) VerifyCode(email string, code string, redis cache_client.RedisClient) (bool, error) {
+	key := email
+	storedCode, err := redis.Get(key)
+	if err != nil {
+		log.Printf("Error retrieving verification code from Redis: %v", err)
+		return false, err
+	}
+	if string(storedCode) != code {
+		log.Printf("Verification code does not match for email %s", email)
+		return false, nil
+	}
+	// 删除验证码
+	err = redis.Del(key)
+	if err != nil {
+		log.Printf("Error deleting verification code from Redis: %v", err)
+		return false, err
+	}
+	return true, nil
 }
 
 // 生成验证码
