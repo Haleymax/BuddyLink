@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+var minioClient MinioClient
+
 type MinioClient interface {
 	UploadFileToBucket(bucket string, filename string, reader io.Reader) error
 	GetUrl(bucket string, filename string) (string, error)
@@ -23,18 +25,20 @@ type MinioImpl struct {
 	ctx    context.Context
 }
 
-func NewMinio(cfg config.MinioConfig) (MinioClient, error) {
+func NewMinio(cfg config.MinioConfig) error {
 	client, err := minio.New(cfg.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
 		Secure: cfg.UseSSL,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &MinioImpl{
+
+	minioClient = &MinioImpl{
 		client: client,
 		ctx:    context.Background(),
-	}, nil
+	}
+	return nil
 }
 
 func (m *MinioImpl) UploadFileToBucket(bucket string, filename string, reader io.Reader) error {
@@ -122,4 +126,11 @@ func (m *MinioImpl) DeleteFileFormBucket(bucket, filename string) error {
 	}
 	log.Println("Successfully removed file: ", filename)
 	return nil
+}
+
+func GetMinioClient() MinioClient {
+	if minioClient == nil {
+		panic("Minio client not initialized")
+	}
+	return minioClient
 }

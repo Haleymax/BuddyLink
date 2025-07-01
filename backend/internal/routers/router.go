@@ -12,9 +12,11 @@ import (
 func SetupRouter(router *gin.Engine, config config.Config, db *gorm.DB) {
 
 	userRepo := repositories.NewUsrRepo(db)
-	userService := services.NewUserService(userRepo)
-	userController := controllers.NewUserController(userService)
 
+	userService := services.NewUserService(userRepo)
+	stmpService := services.NewStmpService(&config.SMTP)
+
+	userController := controllers.NewUserController(userService, stmpService)
 	api := router.Group("/api/v1")
 	index := api.Group("/index")
 	{
@@ -35,5 +37,7 @@ func SetupRouter(router *gin.Engine, config config.Config, db *gorm.DB) {
 		user.POST("/add", userController.AddUser)
 		user.DELETE("/delete", userController.DeleteUser)
 		user.PUT("/update", userController.UpdateUser)
+		user.POST("/send_captcha", userController.SendVerificationCode)
+		user.POST("/register", userController.Register)
 	}
 }
