@@ -96,8 +96,11 @@ func (u *UserServiceImpl) RegisterUser(user models.User) error {
 	user.Status = "active"
 	user.Role = "user"
 
+	minioBucket := "profile"
+	defaultPngFile := "default.png"
+	
 	minio_client := object_storage.GetMinioClient()
-	url, err := minio_client.GetUrl("profile", "default.png")
+	url, err := minio_client.GetUrl(minioBucket, defaultPngFile)
 	if err != nil {
 		return err
 	}

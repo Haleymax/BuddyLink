@@ -17,7 +17,6 @@ func SetupRouter(router *gin.Engine, config config.Config, db *gorm.DB) {
 	stmpService := services.NewStmpService(&config.SMTP)
 
 	userController := controllers.NewUserController(userService, stmpService)
-
 	api := router.Group("/api/v1")
 	index := api.Group("/index")
 	{

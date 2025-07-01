@@ -37,7 +37,8 @@ func main() {
 		log.Println("minio init err:", err)
 		panic(err)
 	}
-	defer routers.SetupRouter(r, config, db)
+
+	routers.SetupRouter(r, config, db)
 
 	go func() {
 		if err := r.Run(config.Server.Port); err != nil {
