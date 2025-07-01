@@ -5,6 +5,7 @@ import (
 	"buddylink/internal/routers"
 	"buddylink/pkg/cache_client"
 	"buddylink/pkg/database"
+	"buddylink/pkg/object_storage"
 	"github.com/gin-gonic/gin"
 	"log"
 	"os"
@@ -31,7 +32,12 @@ func main() {
 		}
 	}()
 
-	routers.SetupRouter(r, config, db)
+	err = object_storage.NewMinio(config.Minio)
+	if err != nil {
+		log.Println("minio init err:", err)
+		panic(err)
+	}
+	defer routers.SetupRouter(r, config, db)
 
 	go func() {
 		if err := r.Run(config.Server.Port); err != nil {
