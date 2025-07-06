@@ -3,6 +3,7 @@ package services
 import (
 	"buddylink/internal/app/models"
 	"buddylink/internal/app/repositories"
+	"buddylink/pkg/jwtutil"
 	"buddylink/pkg/object_storage"
 	"fmt"
 	"github.com/google/uuid"
@@ -16,6 +17,7 @@ type UserService interface {
 	DeleteUser(user models.User) error
 	UpdateUser(user models.User) error
 	RegisterUser(user models.User) error
+	LoginUser(user models.User) (string, error)
 }
 
 type UserServiceImpl struct {
@@ -98,7 +100,7 @@ func (u *UserServiceImpl) RegisterUser(user models.User) error {
 
 	minioBucket := "profile"
 	defaultPngFile := "default.png"
-	
+
 	minio_client := object_storage.GetMinioClient()
 	url, err := minio_client.GetUrl(minioBucket, defaultPngFile)
 	if err != nil {
@@ -112,4 +114,37 @@ func (u *UserServiceImpl) RegisterUser(user models.User) error {
 	}
 	log.Println("user registered successfully")
 	return nil
+}
+
+func (u *UserServiceImpl) LoginUser(user models.User) (string, error) {
+	/*
+		验证用户是否存在，用户验证成功后，返回一个jwt的token
+	*/
+	dbUser, err := u.UserRepo.FindByUuid(user.Uuid)
+	if err != nil {
+		log.Println("failed to check user existence", err.Error())
+		return "", err
+	}
+
+	if dbUser.Email != user.Email {
+		return "", fmt.Errorf("email not match")
+	}
+
+	if dbUser.PasswordHash != user.PasswordHash {
+		return "", fmt.Errorf("password not match")
+	}
+
+	if dbUser.Status == "failed" {
+		return "", fmt.Errorf("user status is failed")
+	}
+
+	jwtUtil := jwtutil.NewJWTUtil("secret")
+	expirationTime := time.Now().Add(24 * time.Hour)
+	token, err := jwtUtil.GenerateToken(dbUser.Uuid, dbUser.Username, expirationTime)
+	if err != nil {
+		log.Println("failed to generate token", err.Error())
+		return "", err
+	}
+	log.Println("successful generated token")
+	return token, nil
 }

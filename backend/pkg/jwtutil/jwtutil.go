@@ -7,7 +7,7 @@ import (
 )
 
 type CustomClaims struct {
-	UserID   uint   `json:"user_id"`
+	UserID   string `json:"user_id"`
 	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
@@ -29,7 +29,7 @@ func NewJWTUtil(secretKey string) *JWTUtil {
 }
 
 // GenerateToken 生成jwt token
-func (j *JWTUtil) GenerateToken(userID uint, username string, expiresAt time.Time) (string, error) {
+func (j *JWTUtil) GenerateToken(userID string, username string, expiresAt time.Time) (string, error) {
 	claims := CustomClaims{
 		UserID:   userID,
 		Username: username,

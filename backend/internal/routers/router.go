@@ -39,5 +39,6 @@ func SetupRouter(router *gin.Engine, config config.Config, db *gorm.DB) {
 		user.PUT("/update", userController.UpdateUser)
 		user.POST("/send_captcha", userController.SendVerificationCode)
 		user.POST("/register", userController.Register)
+		user.POST("/login", userController.Login)
 	}
 }
