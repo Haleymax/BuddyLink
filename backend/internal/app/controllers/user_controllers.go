@@ -192,7 +192,7 @@ func (uc *UserController) Register(c *gin.Context) {
 
 	}
 
-	verificationCode_check, err := uc.stmpService.VerifyCode(emil, verificationCode, redis_client)
+	verificationcodeCheck, err := uc.stmpService.VerifyCode(emil, verificationCode, redis_client)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -203,7 +203,7 @@ func (uc *UserController) Register(c *gin.Context) {
 		return
 	}
 
-	if !verificationCode_check {
+	if !verificationcodeCheck {
 		log.Println("verification code is not correct")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    http.StatusBadRequest,
@@ -233,6 +233,38 @@ func (uc *UserController) Register(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,
 		"message": "success register user",
+		"status":  true,
+	})
+
+}
+
+func (uc *UserController) Login(c *gin.Context) {
+	var user models.User
+	if err := c.ShouldBind(&user); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+			"token":   nil,
+			"status":  false,
+		})
+		return
+	}
+
+	token, err := uc.userService.LoginUser(user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+			"token":   nil,
+			"status":  false,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "success login",
+		"token":   token,
 		"status":  true,
 	})
 
