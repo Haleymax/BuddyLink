@@ -1,12 +1,16 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
 // 定义路由
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
+    redirect: '/login'   // 默认重定向到登陆页
   },
+  {
+    path: '/login',
+    name: 'Login',
+    component: ()=> import('@/views/user/login.vue')
+  }
 ]
 
 // 创建路由实例
