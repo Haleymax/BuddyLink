@@ -15,7 +15,7 @@ import (
 
 func main() {
 	r := gin.Default()
-	config := config.LoadConfig()
+	config := config.GetConfig()
 	db, err := database.InitDB(config.MySQL)
 	defer database.CloseDB()
 
@@ -38,7 +38,7 @@ func main() {
 		panic(err)
 	}
 
-	routers.SetupRouter(r, config, db)
+	routers.SetupRouter(r, db)
 
 	go func() {
 		if err := r.Run(config.Server.Port); err != nil {
