@@ -1,7 +1,6 @@
 package services
 
 import (
-	"buddylink/config"
 	"buddylink/pkg/cache_client"
 	"buddylink/pkg/email"
 	"log"
@@ -18,9 +17,8 @@ type StmpServiceImpl struct {
 	Client email.EmailClient
 }
 
-func NewStmpService(cfg *config.SMTPConfig) StmpService {
-
-	stmp_client, err := email.NewEmailClient(cfg)
+func NewStmpService() StmpService {
+	stmp_client, err := email.NewEmailClient()
 	if err != nil {
 		panic(err)
 	}

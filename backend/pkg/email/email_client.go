@@ -13,24 +13,25 @@ type EmailClient interface {
 }
 
 type EmailClientImpl struct {
-	Cfg    *config.SMTPConfig
 	client *smtp.Client
 }
 
-func NewEmailClient(cfg *config.SMTPConfig) (EmailClient, error) {
-	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
+func NewEmailClient() (EmailClient, error) {
+	cfg := config.GetConfig()
+	smtpConfig := cfg.SMTP
+	addr := fmt.Sprintf("%s:%s", smtpConfig.Host, smtpConfig.Port)
 	var conn *smtp.Client
 	var err error
-	if cfg.SSL {
+	if smtpConfig.SSL {
 		tlsConfig := &tls.Config{
-			ServerName: cfg.Host,
+			ServerName: smtpConfig.Host,
 			MinVersion: tls.VersionTLS12,
 		}
 		tlsconn, terr := tls.Dial("tcp", addr, tlsConfig)
 		if terr != nil {
 			return nil, terr
 		}
-		conn, err = smtp.NewClient(tlsconn, cfg.Host)
+		conn, err = smtp.NewClient(tlsconn, smtpConfig.Host)
 	} else {
 		conn, err = smtp.Dial(addr)
 		if err != nil {
@@ -38,20 +39,21 @@ func NewEmailClient(cfg *config.SMTPConfig) (EmailClient, error) {
 		}
 	}
 
-	auth := smtp.PlainAuth("", cfg.Email, cfg.Password, cfg.Host)
+	auth := smtp.PlainAuth("", smtpConfig.Email, smtpConfig.Password, smtpConfig.Host)
 	if err = conn.Auth(auth); err != nil {
 		return nil, err
 	}
 	return &EmailClientImpl{
-		Cfg:    cfg,
 		client: conn,
 	}, nil
 }
 
 func (e EmailClientImpl) SendMail(to string, subject, content string) error {
 
+	cfg := config.GetConfig()
+
 	// 设置发件人
-	if err := e.client.Mail(e.Cfg.Email); err != nil {
+	if err := e.client.Mail(cfg.SMTP.Email); err != nil {
 		return err
 	}
 
@@ -68,7 +70,7 @@ func (e EmailClientImpl) SendMail(to string, subject, content string) error {
 	defer w.Close()
 
 	// 构造邮件头
-	headers := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n", e.Cfg.Email, to[0], subject)
+	headers := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n", cfg.SMTP.Email, to[0], subject)
 
 	// 写入邮件内容
 	if _, err = fmt.Fprintf(w, "%s%s", headers, content); err != nil {

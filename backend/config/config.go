@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 type Config struct {
@@ -15,7 +16,12 @@ type Config struct {
 	Redis  RedisConfig  `mapstructure:"redis"`
 }
 
-func LoadConfig() Config {
+var (
+	appConfig *Config
+	once      sync.Once
+)
+
+func LoadConfig() *Config {
 	workDir, _ := os.Getwd()
 	configFile := filepath.Join(workDir, "config", "config.yaml")
 	log.Println("Loading config from ", configFile)
@@ -30,5 +36,12 @@ func LoadConfig() Config {
 	if err := viper.Unmarshal(&config); err != nil {
 		log.Fatalf("Error unmarshalling config, %s", err)
 	}
-	return config
+	return &config
+}
+
+func GetConfig() *Config {
+	once.Do(func() {
+		appConfig = LoadConfig()
+	})
+	return appConfig
 }

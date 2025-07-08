@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"buddylink/config"
 	"buddylink/internal/app/controllers"
 	"buddylink/internal/app/repositories"
 	"buddylink/internal/app/services"
@@ -9,12 +8,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupRouter(router *gin.Engine, config config.Config, db *gorm.DB) {
+func SetupRouter(router *gin.Engine, db *gorm.DB) {
 
 	userRepo := repositories.NewUsrRepo(db)
 
 	userService := services.NewUserService(userRepo)
-	stmpService := services.NewStmpService(&config.SMTP)
+	stmpService := services.NewStmpService()
 
 	userController := controllers.NewUserController(userService, stmpService)
 	api := router.Group("/api/v1")
