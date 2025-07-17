@@ -62,14 +62,12 @@ const switchToRegister = () => {
 .auth-container {
   min-height: 100vh;
   width: 100vw;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #18a058 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 /* 背景装饰 */
@@ -174,9 +172,10 @@ const switchToRegister = () => {
 .auth-wrapper {
   width: 100%;
   max-width: 450px;
-  padding: 20px;
+  padding: 40px 20px;
   z-index: 1;
   position: relative;
+  margin: 0 auto;
 }
 
 .auth-content {
@@ -261,13 +260,9 @@ const switchToRegister = () => {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .auth-container {
-    padding: 20px;
-  }
-  
   .auth-wrapper {
     max-width: 100%;
-    padding: 0;
+    padding: 20px;
   }
   
   .form-container :deep(.auth-card) {
@@ -292,9 +287,13 @@ const switchToRegister = () => {
 }
 
 @media (max-width: 480px) {
+  .auth-wrapper {
+    padding: 10px;
+  }
+  
   .form-container :deep(.auth-card) {
     padding: 24px 20px;
-    margin: 0 10px;
+    margin: 0;
   }
   
   .title {
