@@ -175,11 +175,22 @@ const handleSubmit = async () => {
 .auth-card :deep(.n-input .n-input__input-el) {
   background: transparent;
   color: white;
-  padding-left: 44px;
+  padding-left: 50px;
+  padding-right: 16px;
+  text-indent: 0;
+  line-height: 1.5;
+  font-size: 16px;
 }
 
 .auth-card :deep(.n-input .n-input__input-el::placeholder) {
   color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.auth-card :deep(.n-input .n-input__input-el:focus::placeholder) {
+  opacity: 0.4;
+  transform: translateY(-2px);
 }
 
 .auth-card :deep(.n-input:hover) {
@@ -196,6 +207,11 @@ const handleSubmit = async () => {
 
 .auth-card :deep(.n-input .n-input__prefix) {
   padding-left: 16px;
+  padding-right: 10px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .auth-card :deep(.n-input .n-input__prefix .n-icon) {
