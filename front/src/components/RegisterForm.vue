@@ -79,6 +79,35 @@
         </n-input>
       </n-form-item>
 
+      <n-form-item path="verification_code">
+        <n-input 
+          v-model:value="formData.verification_code" 
+          placeholder="请输入邮箱验证码"
+          size="large"
+          @keydown.enter.prevent="handleSubmit"
+        >
+          <template #prefix>
+            <n-icon color="rgba(255, 255, 255, 0.7)">
+              <svg viewBox="0 0 24 24">
+                <path fill="currentColor" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </n-icon>
+          </template>
+          <template #suffix>
+            <n-button 
+              text 
+              type="primary" 
+              size="small"
+              :loading="sendingCode"
+              :disabled="!formData.email || countdown > 0"
+              @click="handleSendCode"
+            >
+              {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+            </n-button>
+          </template>
+        </n-input>
+      </n-form-item>
+
       <div class="form-options">
         <n-checkbox v-model:checked="agreeTerms" size="small">
           <span>我同意</span>
@@ -155,8 +184,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { useMessage, type FormInst } from 'naive-ui';
+import { reactive, ref, onUnmounted } from 'vue';
+import { useMessage, type FormInst, type FormRules } from 'naive-ui';
+import type { RegisterFormData } from '../model/auth';
+import { register, sendVerificationCode } from '../api/auth';
 
 defineEmits<{
   'switch-form': []
@@ -166,60 +197,202 @@ const message = useMessage();
 const formRef = ref<FormInst | null>(null);
 const loading = ref(false);
 const agreeTerms = ref(false);
+const sendingCode = ref(false);
+const countdown = ref(0);
+let countdownTimer: number | null = null;
 
-const formData = ref({
+// 统一的表单数据结构
+const formData = reactive<RegisterFormData & { confirmPassword: string }>({
   username: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  verification_code: ''
 });
 
-const validatePasswordSame = (_rule: any, value: string) => {
-  return value === formData.value.password;
-};
-
-const rules = {
+// 优化后的验证规则
+const rules: FormRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '用户名长度在3到20个字符', trigger: 'blur' },
-    { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线', trigger: 'blur' }
+    {
+      required: true,
+      message: '请输入用户名',
+      trigger: ['blur', 'input']
+    },
+    {
+      min: 3,
+      max: 20,
+      message: '用户名长度应在 3-20 个字符之间',
+      trigger: ['blur', 'input']
+    },
+    {
+      pattern: /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/,
+      message: '用户名只能包含字母、数字、下划线和中文',
+      trigger: ['blur', 'input']
+    }
   ],
   email: [
-    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
-    { type: 'email', message: '请输入有效的邮箱地址', trigger: 'blur' }
+    {
+      required: true,
+      message: '请输入邮箱地址',
+      trigger: ['blur', 'input']
+    },
+    {
+      type: 'email',
+      message: '请输入有效的邮箱地址',
+      trigger: ['blur', 'input']
+    },
+    {
+      pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      message: '邮箱格式不正确',
+      trigger: ['blur', 'input']
+    }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在6到20个字符', trigger: 'blur' },
-    { pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]/, message: '密码必须包含字母和数字', trigger: 'blur' }
+    {
+      required: true,
+      message: '请输入密码',
+      trigger: ['blur', 'input']
+    },
+    {
+      min: 6,
+      max: 20,
+      message: '密码长度应在 6-20 个字符之间',
+      trigger: ['blur', 'input']
+    }
+  ],
+  verification_code: [
+    {
+      required: true,
+      message: '请输入验证码',
+      trigger: ['blur', 'input']
+    },
+    {
+      min: 4,
+      max: 8,
+      message: '验证码长度应在 4-8 个字符之间',
+      trigger: ['blur', 'input']
+    }
   ],
   confirmPassword: [
-    { required: true, message: '请确认密码', trigger: 'blur' },
-    { validator: validatePasswordSame, message: '两次输入的密码不一致', trigger: 'blur' }
+    {
+      required: true,
+      message: '请确认密码',
+      trigger: ['blur', 'input']
+    },
+    {
+      validator: (_rule: any, value: string) => {
+        if (value !== formData.password) {
+          return new Error('两次输入的密码不一致');
+        }
+        return true;
+      },
+      trigger: ['blur', 'input']
+    }
   ]
 };
 
-const handleSubmit = async () => {
+// 发送验证码
+const handleSendCode = async () => {
+  if (!formData.email) {
+    message.error('请先输入邮箱地址');
+    return;
+  }
+
+  // 验证邮箱格式
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(formData.email)) {
+    message.error('请输入有效的邮箱地址');
+    return;
+  }
+
   try {
-    await formRef.value?.validate();
-    if (!agreeTerms.value) {
-      message.warning('请先同意服务条款和隐私政策');
-      return;
+    sendingCode.value = true;
+    const res = await sendVerificationCode(formData.email);
+    
+    if (res.status) {
+      message.success('验证码已发送到您的邮箱，请查收');
+      
+      // 开始倒计时（60秒）
+      countdown.value = 60;
+      countdownTimer = setInterval(() => {
+        countdown.value--;
+        if (countdown.value <= 0) {
+          if (countdownTimer) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+          }
+        }
+      }, 1000);
+    } else {
+      message.error('验证码发送失败，请稍后重试');
     }
-    loading.value = true;
-    // 模拟注册请求
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    message.success('注册成功！欢迎加入 BuddyLink');
-    // 注册成功后可以自动切换到登录表单
-    setTimeout(() => {
-      message.info('请登录您的新账户');
-    }, 1500);
   } catch (error) {
-    message.error('注册失败，请重试');
+    console.error('发送验证码错误:', error);
+    message.error('验证码发送失败，请稍后重试');
+  } finally {
+    sendingCode.value = false;
+  }
+};
+
+const handleSubmit = async () => {
+  if (!agreeTerms.value) {
+    message.warning('请同意服务条款和隐私政策');
+    return;
+  }
+  
+  if (!formRef.value) return;
+
+  try {
+    // 验证表单
+    await formRef.value.validate();
+    
+    loading.value = true;
+
+    // 准备注册数据（不包含 confirmPassword）
+    const registerData: RegisterFormData = {
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+      verification_code: formData.verification_code
+    };
+
+    const res = await register(registerData);
+    if (res.status) {
+      // 清空表单
+      Object.assign(formData, {
+        username: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        verification_code: ''
+      });
+      agreeTerms.value = false;
+      
+      message.success('注册成功，请登录');
+      // 在这里可以添加注册成功后的逻辑，比如跳转到登录页面
+    } else {
+      message.error('注册失败，请稍后再试');
+    }
+  } catch (error) {
+    console.error('注册错误:', error);
+    if (error instanceof Array) {
+      // 表单验证错误
+      message.error('请检查输入信息');
+    } else {
+      message.error('注册失败，请稍后再试');
+    }
   } finally {
     loading.value = false;
   }
 };
+
+// 组件销毁时清理定时器
+onUnmounted(() => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+});
 </script>
 
 <style scoped>
