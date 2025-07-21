@@ -114,8 +114,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { useMessage, type FormInst } from 'naive-ui';
+import { ref, reactive } from 'vue';
+import { useMessage, type FormInst, type FormRules } from 'naive-ui';
+import type { LoginData } from '../model/auth';
+import { login } from '../api/auth';
 
 defineEmits<{
   'switch-form': []
@@ -126,32 +128,75 @@ const formRef = ref<FormInst | null>(null);
 const loading = ref(false);
 const rememberMe = ref(false);
 
-const formData = ref({
+const formData = reactive<LoginData>({
   username: '',
   password: ''
 });
 
-const rules = {
+const rules: FormRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '用户名长度在3到20个字符', trigger: 'blur' }
+    {
+      required: true,
+      message: '请输入用户名',
+      trigger: ['blur', 'input']
+    },
+    {
+      min: 3,
+      max: 20,
+      message: '用户名长度应在 3-20 个字符之间',
+      trigger: ['blur', 'input']
+    },
+    {
+      pattern: /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/,
+      message: '用户名只能包含字母、数字、下划线和中文',
+      trigger: ['blur', 'input']
+    }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在6到20个字符', trigger: 'blur' }
+    {
+      required: true,
+      message: '请输入密码',
+      trigger: ['blur', 'input']
+    },
+    {
+      min: 6,
+      max: 20,
+      message: '密码长度应在 6-20 个字符之间',
+      trigger: ['blur', 'input']
+    }
   ]
 };
 
 const handleSubmit = async () => {
+  if (!formRef.value) return;
+  
   try {
-    await formRef.value?.validate();
+    // 验证表单
+    await formRef.value.validate();
+    
     loading.value = true;
-    // 模拟登录请求
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    message.success('登录成功');
-    // 在这里处理登录成功后的逻辑，比如跳转到首页
+    console.log('登录数据:', formData);
+    
+    const res = await login(formData);
+    if (res.status) {
+      message.success('登录成功');
+      // 在这里处理登录成功后的逻辑，比如跳转到首页
+      // 如果记住我被选中，可以在这里处理相关逻辑
+      if (rememberMe.value) {
+        // 处理记住我的逻辑
+        localStorage.setItem('rememberMe', 'true');
+      }
+    } else {
+      message.error('登录失败，请重试');
+    }
   } catch (error) {
-    message.error('登录失败，请重试');
+    console.error('登录错误:', error);
+    if (error instanceof Array) {
+      // 表单验证错误
+      message.error('请检查输入信息');
+    } else {
+      message.error('登录失败，请重试');
+    }
   } finally {
     loading.value = false;
   }

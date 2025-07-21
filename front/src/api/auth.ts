@@ -1,7 +1,7 @@
 import request from '../utils/request';
-import type { LoginFormData, RegisterFormData } from '../model/auth';
+import type { LoginData, RegisterFormData } from '../model/auth';
 
-export const login = (data: LoginFormData) => {
+export const login = (data: LoginData) => {
     return request({
         url: '/api/v1/user/login',
         method: 'post',
