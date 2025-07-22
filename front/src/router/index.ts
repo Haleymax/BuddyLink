@@ -4,7 +4,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/login'   // 默认重定向到登陆页
+    redirect: '/home'   // 默认重定向到登陆页
   },
   {
     path: '/login',
@@ -15,6 +15,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/register',
     name: 'Register',
     component: ()=> import('@/views/user/Auth.vue')
+  },
+  {
+    path: '/home',
+    name: 'Home',
+    component: () => import('@/views/Home.vue'),
   }
 ]
 
