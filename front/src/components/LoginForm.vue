@@ -10,7 +10,7 @@
       <n-form-item path="username">
         <n-input 
           v-model:value="formData.username" 
-          placeholder="用户名"
+          placeholder="邮箱地址"
           size="large"
           @keydown.enter.prevent
         >
@@ -116,7 +116,7 @@
 <script lang="ts" setup>
 import { ref, reactive } from 'vue';
 import { useMessage, type FormInst, type FormRules } from 'naive-ui';
-import type { LoginData } from '../model/auth';
+import type { LoginFormData } from '../model/auth';
 import { login } from '../api/auth';
 
 defineEmits<{
@@ -128,7 +128,7 @@ const formRef = ref<FormInst | null>(null);
 const loading = ref(false);
 const rememberMe = ref(false);
 
-const formData = reactive<LoginData>({
+const formData = reactive<LoginFormData>({
   username: '',
   password: ''
 });
@@ -137,18 +137,17 @@ const rules: FormRules = {
   username: [
     {
       required: true,
-      message: '请输入用户名',
+      message: '请输入邮箱地址',
       trigger: ['blur', 'input']
     },
     {
-      min: 3,
-      max: 20,
-      message: '用户名长度应在 3-20 个字符之间',
+      type: 'email',
+      message: '请输入有效的邮箱地址',
       trigger: ['blur', 'input']
     },
     {
-      pattern: /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/,
-      message: '用户名只能包含字母、数字、下划线和中文',
+      pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      message: '邮箱格式不正确',
       trigger: ['blur', 'input']
     }
   ],
