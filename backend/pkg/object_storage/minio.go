@@ -92,7 +92,7 @@ func (m *MinioImpl) GetUrl(bucket string, filename string) (string, error) {
 		return "", err
 	}
 
-	url, err := m.client.PresignedGetObject(m.ctx, bucket, filename, time.Hour*24*365*10, nil)
+	url, err := m.client.PresignedGetObject(m.ctx, bucket, filename, 7*24*time.Hour, nil)
 	if err != nil {
 		log.Printf("Error getting file %s: %s", filename, err)
 		return "", err

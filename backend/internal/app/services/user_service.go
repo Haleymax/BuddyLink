@@ -120,14 +120,10 @@ func (u *UserServiceImpl) LoginUser(user models.User) (string, error) {
 	/*
 		验证用户是否存在，用户验证成功后，返回一个jwt的token
 	*/
-	dbUser, err := u.UserRepo.FindByUuid(user.Uuid)
+	dbUser, err := u.UserRepo.FindByEmail(user.Email)
 	if err != nil {
 		log.Println("failed to check user existence", err.Error())
 		return "", err
-	}
-
-	if dbUser.Email != user.Email {
-		return "", fmt.Errorf("email not match")
 	}
 
 	if dbUser.PasswordHash != user.PasswordHash {

@@ -43,7 +43,7 @@ func (s *StmpServiceImpl) SendVerification(email string, redis cache_client.Redi
 	//
 	key := email
 
-	err := redis.Set(key, []byte(verificationCode), 2*time.Minute)
+	err := redis.Set(key, []byte(verificationCode), 2*time.Hour)
 	if err != nil {
 		log.Printf("Error sending verification email %v", err)
 		return err
@@ -63,11 +63,11 @@ func (s *StmpServiceImpl) VerifyCode(email string, code string, redis cache_clie
 		return false, nil
 	}
 	// 删除验证码
-	err = redis.Del(key)
-	if err != nil {
-		log.Printf("Error deleting verification code from Redis: %v", err)
-		return false, err
-	}
+	//err = redis.Del(key)
+	//if err != nil {
+	//	log.Printf("Error deleting verification code from Redis: %v", err)
+	//	return false, err
+	//}
 	return true, nil
 }
 
