@@ -58,8 +58,9 @@ func (r *UserRepositoryImpl) FindByUuid(uuid string) (models.User, error) {
 }
 
 func (r *UserRepositoryImpl) FindByEmail(email string) (models.User, error) {
-	//TODO implement me
-	panic("implement me")
+	var user models.User
+	err := r.db.Where("email = ?", email).First(&user).Error
+	return user, err
 }
 
 func (r *UserRepositoryImpl) FindByUsername(username string) ([]models.User, error) {

@@ -9,7 +9,7 @@
     >
       <n-form-item path="username">
         <n-input 
-          v-model:value="formData.username" 
+          v-model:value="formData.email" 
           placeholder="邮箱地址"
           size="large"
           @keydown.enter.prevent
@@ -129,12 +129,12 @@ const loading = ref(false);
 const rememberMe = ref(false);
 
 const formData = reactive<LoginFormData>({
-  username: '',
+  email: '',
   password: ''
 });
 
 const rules: FormRules = {
-  username: [
+  email: [
     {
       required: true,
       message: '请输入邮箱地址',
@@ -170,7 +170,6 @@ const handleSubmit = async () => {
   if (!formRef.value) return;
   
   try {
-    // 验证表单
     await formRef.value.validate();
     
     loading.value = true;
