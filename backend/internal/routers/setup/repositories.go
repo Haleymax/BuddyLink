@@ -1,4 +1,4 @@
-package routers
+package setup
 
 import (
 	"buddylink/internal/app/repositories"

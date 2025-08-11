@@ -1,6 +1,8 @@
-package routers
+package setup
 
-import "buddylink/internal/app/services"
+import (
+	"buddylink/internal/app/services"
+)
 
 type Services struct {
 	userService services.UserService

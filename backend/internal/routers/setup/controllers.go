@@ -1,6 +1,8 @@
-package routers
+package setup
 
-import "buddylink/internal/app/controllers"
+import (
+	"buddylink/internal/app/controllers"
+)
 
 type Controllers struct {
 	UserController controllers.UserController
