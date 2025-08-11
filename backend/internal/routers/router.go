@@ -1,21 +1,19 @@
 package routers
 
 import (
-	"buddylink/internal/app/controllers"
-	"buddylink/internal/app/repositories"
-	"buddylink/internal/app/services"
+	"buddylink/internal/app/middleware"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 func SetupRouter(router *gin.Engine, db *gorm.DB) {
 
-	userRepo := repositories.NewUsrRepo(db)
+	Repositories := NewRepositories(db)
 
-	userService := services.NewUserService(userRepo)
-	stmpService := services.NewStmpService()
+	Services := NewServices(Repositories)
 
-	userController := controllers.NewUserController(userService, stmpService)
+	Controllers := NewControllers(Services)
+
 	api := router.Group("/api/v1")
 	index := api.Group("/index")
 	{
@@ -28,16 +26,22 @@ func SetupRouter(router *gin.Engine, db *gorm.DB) {
 
 	init := api.Group("/init")
 	{
-		init.GET("/", userController.Create)
+		init.GET("/", Controllers.UserController.Create)
 	}
 
 	user := api.Group("/user")
 	{
-		user.POST("/add", userController.AddUser)
-		user.DELETE("/delete", userController.DeleteUser)
-		user.PUT("/update", userController.UpdateUser)
-		user.POST("/send_captcha", userController.SendVerificationCode)
-		user.POST("/register", userController.Register)
-		user.POST("/login", userController.Login)
+		user.POST("/add", Controllers.UserController.AddUser)
+		user.DELETE("/delete", Controllers.UserController.DeleteUser)
+		user.PUT("/update", Controllers.UserController.UpdateUser)
+		user.POST("/send_captcha", Controllers.UserController.SendVerificationCode)
+		user.POST("/register", Controllers.UserController.Register)
+		user.POST("/login", Controllers.UserController.Login)
+	}
+
+	test := api.Group("test")
+	test.Use(middleware.UserAuthMiddleware())
+	{
+		test.GET("/data", Controllers.TestController.GetTestData)
 	}
 }
