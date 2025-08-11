@@ -136,7 +136,7 @@ func (u *UserServiceImpl) LoginUser(user models.User) (string, error) {
 
 	jwtUtil := jwtutil.NewJWTUtil("secret")
 	expirationTime := time.Now().Add(24 * time.Hour)
-	token, err := jwtUtil.GenerateToken(dbUser.Uuid, dbUser.Username, expirationTime)
+	token, err := jwtUtil.GenerateToken(dbUser.Email, dbUser.Username, dbUser.ID, expirationTime)
 	if err != nil {
 		log.Println("failed to generate token", err.Error())
 		return "", err

@@ -1,21 +1,21 @@
 package routers
 
 import (
-	"buddylink/internal/app/controllers"
-	"buddylink/internal/app/repositories"
-	"buddylink/internal/app/services"
+	"buddylink/internal/app/middleware"
+	"buddylink/internal/routers/router_groups"
+	"buddylink/internal/routers/setup"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 func SetupRouter(router *gin.Engine, db *gorm.DB) {
 
-	userRepo := repositories.NewUsrRepo(db)
+	Repositories := setup.NewRepositories(db)
 
-	userService := services.NewUserService(userRepo)
-	stmpService := services.NewStmpService()
+	Services := setup.NewServices(Repositories)
 
-	userController := controllers.NewUserController(userService, stmpService)
+	Controllers := setup.NewControllers(Services)
+
 	api := router.Group("/api/v1")
 	index := api.Group("/index")
 	{
@@ -28,16 +28,9 @@ func SetupRouter(router *gin.Engine, db *gorm.DB) {
 
 	init := api.Group("/init")
 	{
-		init.GET("/", userController.Create)
+		init.GET("/", Controllers.UserController.Create)
 	}
 
-	user := api.Group("/user")
-	{
-		user.POST("/add", userController.AddUser)
-		user.DELETE("/delete", userController.DeleteUser)
-		user.PUT("/update", userController.UpdateUser)
-		user.POST("/send_captcha", userController.SendVerificationCode)
-		user.POST("/register", userController.Register)
-		user.POST("/login", userController.Login)
-	}
+	router_groups.SetupUserRouters(api, Controllers.UserController)
+	router_groups.SetupTestRouters(api, Controllers.TestController, middleware.UserAuthMiddleware())
 }
