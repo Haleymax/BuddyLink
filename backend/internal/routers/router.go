@@ -31,15 +31,6 @@ func SetupRouter(router *gin.Engine, db *gorm.DB) {
 		init.GET("/", Controllers.UserController.Create)
 	}
 
-	user := api.Group("/user")
-	{
-		user.POST("/add", Controllers.UserController.AddUser)
-		user.DELETE("/delete", Controllers.UserController.DeleteUser)
-		user.PUT("/update", Controllers.UserController.UpdateUser)
-		user.POST("/send_captcha", Controllers.UserController.SendVerificationCode)
-		user.POST("/register", Controllers.UserController.Register)
-		user.POST("/login", Controllers.UserController.Login)
-	}
-
+	router_groups.SetupUserRouters(api, Controllers.UserController)
 	router_groups.SetupTestRouters(api, Controllers.TestController, middleware.UserAuthMiddleware())
 }
