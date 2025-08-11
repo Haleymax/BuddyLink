@@ -32,7 +32,8 @@ func UserAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 		c.Set("username", claims.Username)
-		c.Set("uid", claims.UserID)
+		c.Set("id", claims.Id)
+		c.Set("email", claims.Email)
 		c.Next()
 	}
 }
