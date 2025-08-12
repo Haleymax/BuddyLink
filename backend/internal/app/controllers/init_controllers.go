@@ -17,7 +17,7 @@ func NewInitController(initService services.InitService) *InitController {
 }
 
 func (ctrl *InitController) Index(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,
 		"message": "ok",
 		"data":    nil,
