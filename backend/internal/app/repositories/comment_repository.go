@@ -1,4 +1,8 @@
-type CommentRepository struct {
+package repositories
+
+import "buddylink/internal/app/models"
+
+type CommentRepository interface {
 	CreateTable() error
 	Insert(comment models.Comment) error
 	Delete(comment models.Comment) error
