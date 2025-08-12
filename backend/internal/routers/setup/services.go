@@ -7,12 +7,15 @@ import (
 type Services struct {
 	userService services.UserService
 	stmpService services.StmpService
+	initService services.InitService
 }
 
 func NewServices(repo *Repositories) *Services {
 	userService := services.NewUserService(repo.userRepository)
+	initService := services.NewInitService(repo.initRepository)
 	stmpService := services.NewStmpService()
 	return &Services{
+		initService: initService,
 		userService: userService,
 		stmpService: stmpService,
 	}

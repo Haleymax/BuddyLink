@@ -17,20 +17,8 @@ func SetupRouter(router *gin.Engine, db *gorm.DB) {
 	Controllers := setup.NewControllers(Services)
 
 	api := router.Group("/api/v1")
-	index := api.Group("/index")
-	{
-		index.GET("/", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "hello world",
-			})
-		})
-	}
 
-	init := api.Group("/init")
-	{
-		init.GET("/", Controllers.UserController.Create)
-	}
-
+	router_groups.SetupInitRouter(api, Controllers.InitController)
 	router_groups.SetupUserRouters(api, Controllers.UserController)
 	router_groups.SetupTestRouters(api, Controllers.TestController, middleware.UserAuthMiddleware())
 }
