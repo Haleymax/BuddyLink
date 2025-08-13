@@ -4,6 +4,7 @@ import (
 	"buddylink/internal/app/models"
 	"buddylink/internal/app/services"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -64,4 +65,50 @@ func (sc *SocialCardController) AddCard(c *gin.Context) {
 		"data":    socialCard,
 	})
 
+}
+
+func (sc *SocialCardController) UpdateCard(c *gin.Context) {
+	var socialCard models.SocialCard
+	if err := c.ShouldBind(&socialCard); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	card_id := c.Param("card_id")
+	if card_id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "old data ID is required",
+			"data":    nil,
+		})
+		return
+	}
+
+	card_id_uint, err := strconv.ParseUint(card_id, 10, 64)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "invalid card ID",
+			"data":    nil,
+		})
+		return
+	}
+
+	if err := sc.SocialService.UpdateCard(card_id_uint, socialCard); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "success",
+	})
 }

@@ -10,8 +10,8 @@ type SocialCardRepository interface {
 	CreateTable() error
 	Insert(entity models.SocialCard) error
 	Delete(entity models.SocialCard) error
-	Update(entity models.SocialCard) error
-	FindByID(ID uint) (models.SocialCard, error)
+	Update(oldData, entity models.SocialCard) error
+	FindByID(ID uint64) (models.SocialCard, error)
 	FindByUserId(userID uint) ([]models.SocialCard, error)
 	FindAll() ([]models.SocialCard, error)
 	Exists(entity models.SocialCard) (bool, error)
@@ -39,11 +39,12 @@ func (s SocialCardRepositoryImpl) Delete(entity models.SocialCard) error {
 	return s.db.Delete(&entity).Error
 }
 
-func (s SocialCardRepositoryImpl) Update(entity models.SocialCard) error {
-	return s.db.Save(&entity).Error
+func (s SocialCardRepositoryImpl) Update(oldData, entity models.SocialCard) error {
+	err := s.db.Model(&oldData).Updates(entity).Error
+	return err
 }
 
-func (s SocialCardRepositoryImpl) FindByID(ID uint) (models.SocialCard, error) {
+func (s SocialCardRepositoryImpl) FindByID(ID uint64) (models.SocialCard, error) {
 	var socialCard models.SocialCard
 	err := s.db.Where("id = ?", ID).First(&socialCard).Error
 	return socialCard, err
