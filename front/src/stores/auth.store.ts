@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { useStorage } from '@vueuse/core';
 
-interface User {
+export interface User {
     id: number;
     uuid: string;
     email: string;
