@@ -12,7 +12,7 @@ type SocialCardRepository interface {
 	Delete(entity models.SocialCard) error
 	Update(oldData, entity models.SocialCard) error
 	FindByID(ID uint64) (models.SocialCard, error)
-	FindByUserId(userID uint) ([]models.SocialCard, error)
+	FindByUserId(userID uint64) ([]models.SocialCard, error)
 	FindAll() ([]models.SocialCard, error)
 	Exists(entity models.SocialCard) (bool, error)
 }
@@ -50,9 +50,13 @@ func (s SocialCardRepositoryImpl) FindByID(ID uint64) (models.SocialCard, error)
 	return socialCard, err
 }
 
-func (s SocialCardRepositoryImpl) FindByUserId(userID uint) ([]models.SocialCard, error) {
-	//TODO implement me
-	panic("implement me")
+func (s SocialCardRepositoryImpl) FindByUserId(userID uint64) ([]models.SocialCard, error) {
+	var socialCards []models.SocialCard
+	err := s.db.Where("user_id = ?", userID).Find(&socialCards).Error
+	if err != nil {
+		return nil, err
+	}
+	return socialCards, nil
 }
 
 func (s SocialCardRepositoryImpl) FindAll() ([]models.SocialCard, error) {
