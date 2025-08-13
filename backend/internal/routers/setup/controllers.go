@@ -5,19 +5,22 @@ import (
 )
 
 type Controllers struct {
-	UserController controllers.UserController
-	TestController controllers.TestController
-	InitController controllers.InitController
+	InitController       controllers.InitController
+	UserController       controllers.UserController
+	SocialCardController controllers.SocialCardController
+	TestController       controllers.TestController
 }
 
 func NewControllers(services *Services) *Controllers {
-	userController := controllers.NewUserController(services.userService, services.stmpService)
 	InitController := controllers.NewInitController(services.initService)
+	userController := controllers.NewUserController(services.userService, services.stmpService)
+	socialCardController := controllers.NewSocialCardController(services.socialService)
 	testController := controllers.NewTestController()
 
 	return &Controllers{
-		UserController: *userController,
-		TestController: *testController,
-		InitController: *InitController,
+		UserController:       *userController,
+		TestController:       *testController,
+		InitController:       *InitController,
+		SocialCardController: *socialCardController,
 	}
 }

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"buddylink/internal/app/models"
+
 	"gorm.io/gorm"
 )
 

@@ -6,6 +6,7 @@ type SocialCard struct {
 	BaseModel
 	UserID        uint64    `gorm:"index" json:"user_id"`
 	Content       string    `gorm:"type:text;not null" json:"content"`
+	Title         string    `gorm:"size:255;not null" json:"title"`
 	Images        string    `gorm:"type:text" json:"images"`
 	LikesCount    uint64    `gorm:"default:0" json:"likes_count"`
 	ViewsCount    uint64    `gorm:"default:0" json:"views_count"`
