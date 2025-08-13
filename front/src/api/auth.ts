@@ -1,7 +1,7 @@
 import request from '../utils/request';
-import type { LoginData, RegisterFormData } from '../model/auth';
+import type { LoginFormData, RegisterFormData } from '../model/auth';
 
-export const login = (data: LoginData) => {
+export const login = (data: LoginFormData) => {
     return request({
         url: '/api/v1/user/login',
         method: 'post',
@@ -39,6 +39,16 @@ export const sendVerificationCode = (email: string) => {
         data: formData,
         headers: {
             'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+
+export const getUserInfo = (token: string) => {
+    return request({
+        url: '/api/v1/user/get_user',
+        method: 'get',
+        headers: {
+            "Authorization": token,
         }
     })
 }

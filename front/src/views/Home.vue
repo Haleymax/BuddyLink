@@ -95,10 +95,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, h } from 'vue';
-import { useMessage } from 'naive-ui';
+import { ref, computed, h, onMounted} from 'vue';
+import { c, useMessage } from 'naive-ui';
 import type { MenuOption } from 'naive-ui';
+import type { User } from '../stores/auth.store';
 import '../styles/Home.css';
+import { useAuthStore } from '../stores/auth.store'
 
 // 导入业务组件
 import Dashboard from './home/Dashboard.vue';
@@ -106,10 +108,14 @@ import Profile from './home/Profile.vue';
 import Settings from './home/Settings.vue';
 import Messages from './home/Messages.vue';
 import MapView from './home/MapView.vue';
+import { getUserInfo } from '../api/auth';
 
 const message = useMessage();
 const collapsed = ref(false);
 const activeKey = ref('dashboard');
+
+const user_info = ref<User>({})
+const authStore = useAuthStore()
 
 // 菜单选项
 const menuOptions: MenuOption[] = [
@@ -244,4 +250,32 @@ const handleUserMenuSelect = (key: string) => {
       break;
   }
 };
+
+onMounted(async () => {
+  try {
+    const token = authStore.token
+    if (token) {
+      const response = await getUserInfo(token)
+      if (response.status !== 200) {
+        message.error('获取用户信息失败，请重新登录')
+        return
+      }
+      console.log('获取用户信息:', response.data)
+      const data = response.data
+      user_info.value = {
+        id: data.id,
+        uuid: data.uuid,
+        email: data.email,
+        username: data.username,
+        avatar: data.avatar || null,
+        role: data.role
+      }
+      authStore.user = user_info.value
+    } else {
+      message.error('未登录或登录状态已过期，请重新登录')
+    }
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+  }
+})
 </script>
