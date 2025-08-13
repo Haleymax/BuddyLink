@@ -9,6 +9,7 @@ import (
 type SocialCardService interface {
 	AddCard(card models.SocialCard) error
 	UpdateCard(oldDataID uint64, newData models.SocialCard) error
+	FindById(cardID uint64) (models.SocialCard, error)
 	FindByUserId(userID uint64) ([]models.SocialCard, error)
 }
 
@@ -59,4 +60,13 @@ func (s *socialCardService) FindByUserId(userID uint64) ([]models.SocialCard, er
 		return nil, fmt.Errorf("failed to find cards for user ID %d: %w", userID, err)
 	}
 	return cards, nil
+}
+
+func (s *socialCardService) FindById(cardID uint64) (models.SocialCard, error) {
+	// find card by ID
+	card, err := s.SocialRepo.FindByID(cardID)
+	if err != nil {
+		return models.SocialCard{}, fmt.Errorf("failed to find card with ID %d: %w", cardID, err)
+	}
+	return card, nil
 }

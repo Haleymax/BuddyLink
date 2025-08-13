@@ -150,3 +150,41 @@ func (sc *SocialCardController) FindByUserId(c *gin.Context) {
 		"data":    cards,
 	})
 }
+
+func (sc *SocialCardController) FindByCardId(c *gin.Context) {
+	cardIDStr := c.Param("card_id")
+	if cardIDStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "card ID is required",
+			"data":    nil,
+		})
+		return
+	}
+
+	cardID, err := strconv.ParseUint(cardIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "invalid card ID",
+			"data":    nil,
+		})
+		return
+	}
+
+	card, err := sc.SocialService.FindById(cardID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "success",
+		"data":    card,
+	})
+}
