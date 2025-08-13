@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"buddylink/internal/app/models"
+
 	"gorm.io/gorm"
 )
 
@@ -31,23 +32,21 @@ func (s SocialCardRepositoryImpl) CreateTable() error {
 }
 
 func (s SocialCardRepositoryImpl) Insert(entity models.SocialCard) error {
-	//TODO implement me
-	panic("implement me")
+	return s.db.Create(&entity).Error
 }
 
 func (s SocialCardRepositoryImpl) Delete(entity models.SocialCard) error {
-	//TODO implement me
-	panic("implement me")
+	return s.db.Delete(&entity).Error
 }
 
 func (s SocialCardRepositoryImpl) Update(entity models.SocialCard) error {
-	//TODO implement me
-	panic("implement me")
+	return s.db.Save(&entity).Error
 }
 
 func (s SocialCardRepositoryImpl) FindByID(ID uint) (models.SocialCard, error) {
-	//TODO implement me
-	panic("implement me")
+	var socialCard models.SocialCard
+	err := s.db.Where("id = ?", ID).First(&socialCard).Error
+	return socialCard, err
 }
 
 func (s SocialCardRepositoryImpl) FindByUserId(userID uint) ([]models.SocialCard, error) {
@@ -61,6 +60,10 @@ func (s SocialCardRepositoryImpl) FindAll() ([]models.SocialCard, error) {
 }
 
 func (s SocialCardRepositoryImpl) Exists(entity models.SocialCard) (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	var count int64
+	err := s.db.Model(&models.SocialCard{}).Where("title = ?", entity.Title).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
