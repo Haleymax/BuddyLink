@@ -11,6 +11,9 @@ type SocialCardService interface {
 	UpdateCard(oldDataID uint64, newData models.SocialCard) error
 	FindById(cardID uint64) (models.SocialCard, error)
 	FindByUserId(userID uint64) ([]models.SocialCard, error)
+	Delete(card models.SocialCard) error
+	DeleteByID(ID uint64) error
+	DeleteByUserId(userID uint64) error
 }
 
 type socialCardService struct {
@@ -69,4 +72,36 @@ func (s *socialCardService) FindById(cardID uint64) (models.SocialCard, error) {
 		return models.SocialCard{}, fmt.Errorf("failed to find card with ID %d: %w", cardID, err)
 	}
 	return card, nil
+}
+
+func (s *socialCardService) Delete(card models.SocialCard) error {
+	// delete card
+	exists, err := s.SocialRepo.Exists(card)
+	if err != nil {
+		return fmt.Errorf("failed to check if card exists: %w", err)
+	}
+	if !exists {
+		return fmt.Errorf("card with ID %d does not exist", card.ID)
+	}
+
+	if err := s.SocialRepo.Delete(card); err != nil {
+		return fmt.Errorf("failed to delete card: %w", err)
+	}
+	return nil
+}
+
+func (s *socialCardService) DeleteByID(ID uint64) error {
+	// delete card by ID
+	if err := s.SocialRepo.DeleteByID(ID); err != nil {
+		return fmt.Errorf("failed to delete card with ID %d: %w", ID, err)
+	}
+	return nil
+}
+
+func (s *socialCardService) DeleteByUserId(userID uint64) error {
+	// delete cards by user ID
+	if err := s.SocialRepo.DeleteByUserId(userID); err != nil {
+		return fmt.Errorf("failed to delete cards for user ID %d: %w", userID, err)
+	}
+	return nil
 }

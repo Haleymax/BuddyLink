@@ -188,3 +188,101 @@ func (sc *SocialCardController) FindByCardId(c *gin.Context) {
 		"data":    card,
 	})
 }
+
+func (sc *SocialCardController) DeleteCard(c *gin.Context) {
+	var card models.SocialCard
+	if err := c.ShouldBind(&card); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	if err := sc.SocialService.Delete(card); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "success",
+	})
+}
+
+func (sc *SocialCardController) DeleteByCardId(c *gin.Context) {
+	cardIDStr := c.Param("card_id")
+	if cardIDStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "card ID is required",
+			"data":    nil,
+		})
+		return
+	}
+
+	cardID, err := strconv.ParseUint(cardIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "invalid card ID",
+			"data":    nil,
+		})
+		return
+	}
+
+	if err := sc.SocialService.DeleteByID(cardID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "success",
+	})
+}
+
+func (sc *SocialCardController) DeleteByUserId(c *gin.Context) {
+	userIDStr := c.Param("user_id")
+	if userIDStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "user ID is required",
+			"data":    nil,
+		})
+		return
+	}
+
+	userID, err := strconv.ParseUint(userIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "invalid user ID",
+			"data":    nil,
+		})
+		return
+	}
+
+	if err := sc.SocialService.DeleteByUserId(userID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "success",
+	})
+}
