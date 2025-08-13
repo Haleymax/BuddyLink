@@ -146,20 +146,14 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useMessage } from 'naive-ui';
 import '../styles/MapComponent.css';
-
-// 声明全局AMap变量
-declare global {
-  interface Window {
-    AMap: any;
-    _AMapSecurityConfig: any;
-  }
-}
+import AMapLoader from '@amap/amap-jsapi-loader';
 
 const message = useMessage();
 
 // 响应式数据
 const map = ref<any>(null);
 const marker = ref<any>(null);
+const AMapRef = ref<any>(null); // 保存 AMap 命名空间
 const locationLoading = ref(false);
 const searchLoading = ref(false);
 const currentLocation = ref<{
@@ -188,60 +182,43 @@ const isValidCoordinate = computed(() => {
 });
 
 // 高德地图配置
-const AMAP_KEY = import.meta.env.VITE_AMAP_KEY || '42707d19daa52635acb92b215df96bcc'; // 请在.env.local中配置或直接替换
-const AMAP_SECURITY_CODE = import.meta.env.VITE_AMAP_SECURITY_CODE || '45a9990b03da96393396d53446d5eb6e'; // 请在.env.local中配置或直接替换
+const AMAP_KEY = import.meta.env.VITE_AMAP_KEY || '42707d19daa52635acb92b215df96bcc';
+const AMAP_SECURITY_CODE = import.meta.env.VITE_AMAP_SECURITY_CODE || '45a9990b03da96393396d53446d5eb6e';
 
-// 初始化地图
+// 初始化地图（接收 AMap 命名空间）
 const initMap = () => {
   try {
-    // 设置安全密钥
-    window._AMapSecurityConfig = {
-      securityJsCode: AMAP_SECURITY_CODE,
-    };
+    const AMap = AMapRef.value;
+    if (!AMap) {
+      message.error('AMap 未加载');
+      return;
+    }
 
-    // 创建地图实例
-    map.value = new window.AMap.Map('amap-container', {
+    map.value = new AMap.Map('amap-container', {
       zoom: 13,
-      center: [116.39, 39.9], // 默认中心点（北京）
+      center: [116.39, 39.9],
       mapStyle: 'amap://styles/normal',
       viewMode: '3D'
     });
 
-    // 等待地图加载完成后再添加控件
     map.value.on('complete', () => {
       try {
-        // 尝试添加比例尺控件
-        if (window.AMap.Scale) {
-          const scale = new window.AMap.Scale();
-          map.value.addControl(scale);
-          console.log('比例尺控件加载成功');
-        }
-        
-        // 尝试添加工具栏控件
-        if (window.AMap.ToolBar) {
-          const toolBar = new window.AMap.ToolBar();
-          map.value.addControl(toolBar);
-          console.log('工具栏控件加载成功');
-        }
+        // 插件已通过 loader 预加载，直接实例化
+        const scale = new AMap.Scale();
+        map.value.addControl(scale);
+        const toolBar = new AMap.ToolBar();
+        map.value.addControl(toolBar);
       } catch (error) {
         console.warn('地图控件加载失败:', error);
-        // 控件加载失败不影响地图基本功能
       }
     });
-    
-    // 添加地图点击事件监听
+
     map.value.on('click', (e: any) => {
       const { lng, lat } = e.lnglat;
-      
-      // 更新坐标表单
       coordinateForm.value.longitude = Number(lng.toFixed(6));
       coordinateForm.value.latitude = Number(lat.toFixed(6));
-      
-      // 添加标记点
       addMarker(lng, lat);
-      
-      // 获取地址信息（可选）
-      const geocoder = new window.AMap.Geocoder();
+      const geocoder = new AMap.Geocoder();
       geocoder.getAddress([lng, lat], (status: string, result: any) => {
         if (status === 'complete' && result.regeocode) {
           currentLocation.value = {
@@ -256,10 +233,9 @@ const initMap = () => {
           };
         }
       });
-      
       message.info(`已选择位置: ${lng.toFixed(6)}, ${lat.toFixed(6)}`);
     });
-    
+
     message.success('地图初始化成功，点击地图任意位置获取坐标');
   } catch (error) {
     console.error('地图初始化失败:', error);
@@ -267,76 +243,43 @@ const initMap = () => {
   }
 };
 
-// 加载高德地图脚本
-const loadAmapScript = () => {
-  return new Promise((resolve, reject) => {
-    if (window.AMap) {
-      resolve(window.AMap);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = `https://webapi.amap.com/maps?v=2.0&key=${AMAP_KEY}&plugin=AMap.Geolocation,AMap.Geocoder,AMap.AutoComplete,AMap.PlaceSearch`;
-    script.async = true;
-    script.onload = () => resolve(window.AMap);
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-};
-
 // 获取当前位置
 const getCurrentLocation = async () => {
-  if (!map.value) {
+  if (!map.value || !AMapRef.value) {
     message.error('地图未初始化');
     return;
   }
-
+  const AMap = AMapRef.value;
   locationLoading.value = true;
-
   try {
-    const geolocation = new window.AMap.Geolocation({
+    const geolocation = new AMap.Geolocation({
       enableHighAccuracy: true,
       timeout: 10000,
       maximumAge: 1000 * 60 * 60 * 24,
       convert: true,
       showButton: false,
       buttonPosition: 'RB',
-      buttonOffset: new window.AMap.Pixel(10, 20),
+      buttonOffset: new AMap.Pixel(10, 20),
       showMarker: false,
       showCircle: false,
       panToLocation: true,
       zoomToAccuracy: true
     });
-
     geolocation.getCurrentPosition((status: string, result: any) => {
       locationLoading.value = false;
-      
       if (status === 'complete') {
         const { lng, lat, formattedAddress } = result.position;
-        
-        currentLocation.value = {
-          longitude: lng,
-          latitude: lat,
-          address: formattedAddress
-        };
-
-        // 更新输入框的值
+        currentLocation.value = { longitude: lng, latitude: lat, address: formattedAddress };
         coordinateForm.value.longitude = Number(lng.toFixed(6));
         coordinateForm.value.latitude = Number(lat.toFixed(6));
-
-        // 在地图上标记位置
         addMarker(lng, lat);
-        
-        // 移动地图中心到当前位置
         map.value.setCenter([lng, lat]);
         map.value.setZoom(16);
-        
         message.success('获取位置成功');
       } else {
         message.error('获取位置失败：' + result.message);
       }
     });
-
     map.value.addControl(geolocation);
   } catch (error) {
     locationLoading.value = false;
@@ -347,29 +290,24 @@ const getCurrentLocation = async () => {
 
 // 添加标记点
 const addMarker = (lng: number, lat: number) => {
-  // 移除已有标记
+  if (!AMapRef.value) return;
+  const AMap = AMapRef.value;
   if (marker.value) {
     map.value.remove(marker.value);
   }
-
-  // 创建新标记
-  marker.value = new window.AMap.Marker({
+  marker.value = new AMap.Marker({
     position: [lng, lat],
-    icon: new window.AMap.Icon({
-      size: new window.AMap.Size(32, 32),
+    icon: new AMap.Icon({
+      size: new AMap.Size(32, 32),
       image: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
-      imageOffset: new window.AMap.Pixel(-16, -32),
-      imageSize: new window.AMap.Size(32, 32)
+      imageOffset: new AMap.Pixel(-16, -32),
+      imageSize: new AMap.Size(32, 32)
     }),
     title: `坐标: ${lng.toFixed(6)}, ${lat.toFixed(6)}`,
     anchor: 'bottom-center'
   });
-
-  // 添加到地图
   map.value.add(marker.value);
-  
-  // 创建信息窗体
-  const infoWindow = new window.AMap.InfoWindow({
+  const infoWindow = new AMap.InfoWindow({
     content: `
       <div style="padding: 8px; min-width: 200px;">
         <div style="font-weight: bold; margin-bottom: 8px; color: #333;">📍 位置坐标</div>
@@ -377,11 +315,9 @@ const addMarker = (lng: number, lat: number) => {
         <div style="margin-bottom: 4px;"><strong>纬度:</strong> ${lat.toFixed(6)}</div>
       </div>
     `,
-    offset: new window.AMap.Pixel(0, -30),
+    offset: new AMap.Pixel(0, -30),
     closeWhenClickMap: true
   });
-
-  // 点击标记显示信息窗体
   marker.value.on('click', () => {
     infoWindow.open(map.value, [lng, lat]);
   });
@@ -389,37 +325,20 @@ const addMarker = (lng: number, lat: number) => {
 
 // 定位到指定坐标
 const navigateToCoordinate = async () => {
-  if (!isValidCoordinate.value || !map.value) {
-    return;
-  }
-
+  if (!isValidCoordinate.value || !map.value || !AMapRef.value) return;
   const { longitude, latitude } = coordinateForm.value;
-  
   try {
-    // 移动地图到指定位置
     map.value.setCenter([longitude!, latitude!]);
     map.value.setZoom(16);
-    
-    // 添加标记
     addMarker(longitude!, latitude!);
-    
-    // 逆地理编码获取地址信息
-    const geocoder = new window.AMap.Geocoder();
+    const geocoder = new AMapRef.value.Geocoder();
     geocoder.getAddress([longitude!, latitude!], (status: string, result: any) => {
       if (status === 'complete' && result.regeocode) {
-        currentLocation.value = {
-          longitude: longitude!,
-          latitude: latitude!,
-          address: result.regeocode.formattedAddress
-        };
+        currentLocation.value = { longitude: longitude!, latitude: latitude!, address: result.regeocode.formattedAddress };
       } else {
-        currentLocation.value = {
-          longitude: longitude!,
-          latitude: latitude!
-        };
+        currentLocation.value = { longitude: longitude!, latitude: latitude! };
       }
     });
-    
     message.success('定位成功');
   } catch (error) {
     message.error('定位失败');
@@ -429,45 +348,25 @@ const navigateToCoordinate = async () => {
 
 // 搜索附近POI
 const searchNearby = () => {
-  if (!currentLocation.value || !map.value) {
+  if (!currentLocation.value || !map.value || !AMapRef.value) {
     message.warning('请先获取当前位置');
     return;
   }
-
+  const AMap = AMapRef.value;
   const { longitude, latitude } = currentLocation.value;
-  
-  // 使用高德地图PlaceSearch服务搜索附近POI
-  const placeSearch = new window.AMap.PlaceSearch({
-    pageSize: 10,
-    pageIndex: 1,
-    city: '',
-    map: map.value,
-    panel: false
-  });
-
+  const placeSearch = new AMap.PlaceSearch({ pageSize: 10, pageIndex: 1, city: '', map: map.value, panel: false });
   placeSearch.searchNearBy('', [longitude, latitude], 1000, (status: string, result: any) => {
     if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
-      // 清除之前的标记
-      if (marker.value) {
-        map.value.remove(marker.value);
-      }
-
-      // 添加附近POI标记
-      const pois = result.poiList.pois.slice(0, 5); // 显示前5个POI
+      if (marker.value) map.value.remove(marker.value);
+      const pois = result.poiList.pois.slice(0, 5);
       const markers: any[] = [];
-
       pois.forEach((poi: any, index: number) => {
-        const poiMarker = new window.AMap.Marker({
+        const poiMarker = new AMap.Marker({
           position: [poi.location.lng, poi.location.lat],
-          icon: new window.AMap.Icon({
-            size: new window.AMap.Size(25, 30),
-            image: `https://webapi.amap.com/theme/v1.3/markers/n/mark_${String.fromCharCode(65 + index)}.png`
-          }),
+          icon: new AMap.Icon({ size: new AMap.Size(25, 30), image: `https://webapi.amap.com/theme/v1.3/markers/n/mark_${String.fromCharCode(65 + index)}.png` }),
           title: poi.name
         });
-
-        // 创建信息窗体
-        const infoWindow = new window.AMap.InfoWindow({
+        const infoWindow = new AMap.InfoWindow({
           content: `
             <div style="padding: 8px; min-width: 200px;">
               <div style="font-weight: bold; margin-bottom: 8px; color: #333;">📍 ${poi.name}</div>
@@ -476,24 +375,17 @@ const searchNearby = () => {
               <div><strong>距离:</strong> ${Math.round(poi.distance)}米</div>
             </div>
           `,
-          offset: new window.AMap.Pixel(0, -30)
+          offset: new AMap.Pixel(0, -30)
         });
-
         poiMarker.on('click', () => {
           infoWindow.open(map.value, [poi.location.lng, poi.location.lat]);
         });
-
         markers.push(poiMarker);
         map.value.add(poiMarker);
       });
-
-      // 调整地图视野以包含所有POI
-      const bounds = new window.AMap.Bounds();
-      pois.forEach((poi: any) => {
-        bounds.extend([poi.location.lng, poi.location.lat]);
-      });
+      const bounds = new AMap.Bounds();
+      pois.forEach((poi: any) => bounds.extend([poi.location.lng, poi.location.lat]));
       map.value.setBounds(bounds);
-
       message.success(`找到${pois.length}个附近地点`);
     } else {
       message.warning('附近没有找到相关地点');
@@ -501,94 +393,51 @@ const searchNearby = () => {
   });
 };
 
-// 地址搜索功能
+// 地址搜索
 const searchAddress = async () => {
-  if (!searchForm.value.address || searchForm.value.address.trim() === '' || !map.value) {
+  if (!searchForm.value.address || searchForm.value.address.trim() === '' || !map.value || !AMapRef.value) {
     message.warning('请输入有效的地址');
     return;
   }
-
   searchLoading.value = true;
-  console.log('开始搜索地址:', searchForm.value.address);
-
   try {
-    // 确保AMap.Geocoder已加载
-    if (!window.AMap || !window.AMap.Geocoder) {
-      message.error('地图服务未完全加载，请稍后再试');
-      searchLoading.value = false;
-      return;
-    }
-
-    const geocoder = new window.AMap.Geocoder({
-      city: '', // 全国范围搜索
-      radius: 1000, // 搜索半径
-      extensions: 'base' // 返回基本信息
-    });
-
+    const geocoder = new AMapRef.value.Geocoder({ city: '', radius: 1000, extensions: 'base' });
     geocoder.getLocation(searchForm.value.address, (status: string, result: any) => {
       searchLoading.value = false;
-      console.log('搜索结果:', status, result);
-      
       if (status === 'complete' && result.geocodes && result.geocodes.length > 0) {
         const geocode = result.geocodes[0];
         const location = geocode.location;
         const lng = location.lng;
         const lat = location.lat;
         const formattedAddress = geocode.formattedAddress || geocode.district || searchForm.value.address;
-        
-        console.log('找到位置:', lng, lat, formattedAddress);
-        
-        // 更新坐标表单
         coordinateForm.value.longitude = Number(lng.toFixed(6));
         coordinateForm.value.latitude = Number(lat.toFixed(6));
-        
-        // 更新当前位置信息
-        currentLocation.value = {
-          longitude: Number(lng.toFixed(6)),
-          latitude: Number(lat.toFixed(6)),
-          address: formattedAddress
-        };
-        
-        // 添加标记点
+        currentLocation.value = { longitude: Number(lng.toFixed(6)), latitude: Number(lat.toFixed(6)), address: formattedAddress };
         addMarker(lng, lat);
-        
-        // 移动地图中心到搜索位置
         map.value.setCenter([lng, lat]);
         map.value.setZoom(16);
-        
         message.success(`找到地址: ${formattedAddress}`);
-        
-        // 搜索成功后清空搜索框
         searchForm.value.address = '';
       } else {
-        console.error('搜索失败:', status, result);
         message.error('未找到该地址，请检查地址是否正确或尝试更具体的地址');
       }
     });
   } catch (error) {
     searchLoading.value = false;
-    console.error('地址搜索出错:', error);
     message.error('地址搜索失败，请稍后重试');
+    console.error('地址搜索出错:', error);
   }
 };
 
 // 清除标记
 const clearMarker = () => {
   if (map.value) {
-    // 清除所有标记
     map.value.clearMap();
     marker.value = null;
-    
-    // 清空位置信息
     currentLocation.value = null;
-    
-    // 清空坐标表单
     coordinateForm.value.longitude = null;
     coordinateForm.value.latitude = null;
-    
-    // 清空搜索框
     searchForm.value.address = '';
-    
     message.success('已清除所有标记点');
   }
 };
@@ -607,11 +456,42 @@ watch([() => coordinateForm.value.longitude, () => coordinateForm.value.latitude
 // 组件挂载时初始化
 onMounted(async () => {
   try {
-    await loadAmapScript();
-    initMap();
+    // 安全密钥配置
+    (window as any)._AMapSecurityConfig = { securityJsCode: AMAP_SECURITY_CODE };
+    AMapLoader.load({
+      key: AMAP_KEY,
+      version: '2.0',
+      plugins: ['AMap.Geolocation', 'AMap.Geocoder', 'AMap.AutoComplete', 'AMap.PlaceSearch', 'AMap.Scale', 'AMap.ToolBar'],
+      // 如需 AMapUI 或 Loca 可在此添加
+    }).then((AMap) => {
+      AMapRef.value = AMap;
+      initMap();
+    }).catch((error) => {
+      message.error('地图加载失败，请检查网络连接和API密钥');
+      console.error('地图加载错误:', error);
+    });
   } catch (error) {
     message.error('地图加载失败，请检查网络连接和API密钥');
     console.error('地图加载错误:', error);
   }
 });
 </script>
+
+<style scoped>
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.map {
+  width: 100%;
+  height: 400px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.control-panel {
+  margin-top: 16px;
+}
+</style>

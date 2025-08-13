@@ -7,7 +7,7 @@
       :show-label="false"
       size="large"
     >
-      <n-form-item path="username">
+      <n-form-item path="email">
         <n-input 
           v-model:value="formData.email" 
           placeholder="邮箱地址"
@@ -72,37 +72,6 @@
       </n-button>
     </n-form>
 
-    <!-- 分割线 -->
-    <n-divider class="divider">
-      或者
-    </n-divider>
-
-    <!-- 社交登录 -->
-    <div class="social-login">
-      <n-button quaternary circle size="large" class="social-btn">
-        <template #icon>
-          <n-icon size="20" color="#1890ff">
-            <svg viewBox="0 0 24 24">
-              <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-          </n-icon>
-        </template>
-      </n-button>
-      
-      <n-button quaternary circle size="large" class="social-btn">
-        <template #icon>
-          <n-icon size="20" color="#07c160">
-            <svg viewBox="0 0 24 24">
-              <path fill="currentColor" d="M8.5 12c0 1.5.5 3 1.5 4s2.5 1.5 4 1.5 3-.5 4-1.5 1.5-2.5 1.5-4-.5-3-1.5-4-2.5-1.5-4-1.5-3 .5-4 1.5-1.5 2.5-1.5 4zm6.5-8c-4.4 0-8 3.6-8 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8z"/>
-            </svg>
-          </n-icon>
-        </template>
-      </n-button>
-    </div>
-
     <!-- 切换到注册 -->
     <div class="switch-link">
       <span>还没有账户？</span>
@@ -115,10 +84,12 @@
 
 <script lang="ts" setup>
 import { ref, reactive } from 'vue';
-import { useMessage, type FormInst, type FormRules } from 'naive-ui';
+import { c, useMessage, type FormInst, type FormRules } from 'naive-ui';
 import type { LoginFormData } from '../model/auth';
 import { login } from '../api/auth';
 import '../styles/LoginForm.css';
+import { useAuthStore } from '../stores/auth.store';
+import router from '../router';
 
 defineEmits<{
   'switch-form': []
@@ -128,6 +99,7 @@ const message = useMessage();
 const formRef = ref<FormInst | null>(null);
 const loading = ref(false);
 const rememberMe = ref(false);
+const auth = useAuthStore();
 
 const formData = reactive<LoginFormData>({
   email: '',
@@ -136,34 +108,12 @@ const formData = reactive<LoginFormData>({
 
 const rules: FormRules = {
   email: [
-    {
-      required: true,
-      message: '请输入邮箱地址',
-      trigger: ['blur', 'input']
-    },
-    {
-      type: 'email',
-      message: '请输入有效的邮箱地址',
-      trigger: ['blur', 'input']
-    },
-    {
-      pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-      message: '邮箱格式不正确',
-      trigger: ['blur', 'input']
-    }
+    { required: true, message: '请输入邮箱地址', trigger: ['blur', 'input'] },
+    { type: 'email', message: '请输入有效的邮箱地址', trigger: ['blur', 'input'] }
   ],
   password: [
-    {
-      required: true,
-      message: '请输入密码',
-      trigger: ['blur', 'input']
-    },
-    {
-      min: 6,
-      max: 20,
-      message: '密码长度应在 6-20 个字符之间',
-      trigger: ['blur', 'input']
-    }
+    { required: true, message: '请输入密码', trigger: ['blur', 'input'] },
+    { min: 6, max: 20, message: '密码长度应在 6-20 个字符之间', trigger: ['blur', 'input'] }
   ]
 };
 
@@ -177,14 +127,21 @@ const handleSubmit = async () => {
     console.log('登录数据:', formData);
     
     const res = await login(formData);
+
+    console.log('登录响应:', res);
+    
+
     if (res.status) {
       message.success('登录成功');
-      // 在这里处理登录成功后的逻辑，比如跳转到首页
-      // 如果记住我被选中，可以在这里处理相关逻辑
+      const token = res.token;
+      console.log('Token:', token);
+      auth.SetToken(token);
       if (rememberMe.value) {
-        // 处理记住我的逻辑
         localStorage.setItem('rememberMe', 'true');
       }
+      // 跳转到 /home （路由里 name 定义为 'Home'）
+      await router.push({ name: 'Home' });
+      return;
     } else {
       message.error('登录失败，请重试');
     }
