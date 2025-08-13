@@ -269,3 +269,49 @@ func (uc *UserController) Login(c *gin.Context) {
 	})
 
 }
+
+func (uc *UserController) GetUser(c *gin.Context) {
+	id, exists := c.Get("id")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "user id not found",
+			"data":    nil,
+		})
+		return
+	}
+
+	userId, ok := id.(uint64)
+
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "user id not valid",
+			"data":    nil,
+		})
+		return
+	}
+
+	user, err := uc.userService.GetUserInfo(userId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "success get user",
+		"data": map[string]interface{}{
+			"id":       user.ID,
+			"uuid":     user.Uuid,
+			"email":    user.Email,
+			"username": user.Username,
+			"avatar":   user.Avatar,
+			"role":     user.Role,
+		},
+	})
+
+}

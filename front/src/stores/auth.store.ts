@@ -2,9 +2,12 @@ import { defineStore } from 'pinia';
 import { useStorage } from '@vueuse/core';
 
 interface User {
+    id: number;
+    uuid: string;
     email: string;
-    name: string | null;
-    id: string;
+    username: string;
+    avatar: string | null;
+    role: string;
 }
 
 interface AuthState {

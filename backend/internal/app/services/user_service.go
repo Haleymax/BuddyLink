@@ -18,6 +18,7 @@ type UserService interface {
 	UpdateUser(user models.User) error
 	RegisterUser(user models.User) error
 	LoginUser(user models.User) (string, error)
+	GetUserInfo(id uint64) (models.User, error)
 }
 
 type UserServiceImpl struct {
@@ -143,4 +144,12 @@ func (u *UserServiceImpl) LoginUser(user models.User) (string, error) {
 	}
 	log.Println("successful generated token")
 	return token, nil
+}
+
+func (u *UserServiceImpl) GetUserInfo(id uint64) (models.User, error) {
+	user, err := u.UserRepo.FindById(id)
+	if err != nil {
+		return models.User{}, err
+	}
+	return user, nil
 }

@@ -2,6 +2,7 @@ package router_groups
 
 import (
 	"buddylink/internal/app/controllers"
+	"buddylink/internal/app/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,5 +15,6 @@ func SetupUserRouters(api *gin.RouterGroup, controller controllers.UserControlle
 		user.POST("/send_captcha", controller.SendVerificationCode)
 		user.POST("/register", controller.Register)
 		user.POST("/login", controller.Login)
+		user.GET("/get_user", middleware.UserAuthMiddleware(), controller.GetUser)
 	}
 }

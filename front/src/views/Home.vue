@@ -12,7 +12,13 @@
           <span class="logo-text">BuddyLink</span>
         </div>
         <div class="user-info">
-          <n-avatar round size="small" src="https://via.placeholder.com/40" />
+          <n-avatar round size="small">
+            <n-icon>
+              <svg viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+              </svg>
+            </n-icon>
+          </n-avatar>
           <span class="username">欢迎回来</span>
         </div>
       </div>
@@ -89,19 +95,27 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, h } from 'vue';
-import { useMessage } from 'naive-ui';
+import { ref, computed, h, onMounted} from 'vue';
+import { c, useMessage } from 'naive-ui';
 import type { MenuOption } from 'naive-ui';
+import type { User } from '../stores/auth.store';
+import '../styles/Home.css';
+import { useAuthStore } from '../stores/auth.store'
 
 // 导入业务组件
 import Dashboard from './home/Dashboard.vue';
 import Profile from './home/Profile.vue';
 import Settings from './home/Settings.vue';
 import Messages from './home/Messages.vue';
+import MapView from './home/MapView.vue';
+import { getUserInfo } from '../api/auth';
 
 const message = useMessage();
 const collapsed = ref(false);
 const activeKey = ref('dashboard');
+
+const user_info = ref<User>({})
+const authStore = useAuthStore()
 
 // 菜单选项
 const menuOptions: MenuOption[] = [
@@ -125,6 +139,18 @@ const menuOptions: MenuOption[] = [
         h('path', { 
           fill: 'currentColor', 
           d: 'M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z' 
+        })
+      ])
+    ])
+  },
+  {
+    label: '地图定位',
+    key: 'map',
+    icon: () => h('div', { class: 'menu-icon' }, [
+      h('svg', { viewBox: '0 0 24 24' }, [
+        h('path', { 
+          fill: 'currentColor', 
+          d: 'M12,2C15.31,2 18,4.66 18,7.95C18,12.41 12,19 12,19S6,12.41 6,7.95C6,4.66 8.69,2 12,2M12,6A2,2 0 0,0 10,8A2,2 0 0,0 12,10A2,2 0 0,0 14,8A2,2 0 0,0 12,6Z' 
         })
       ])
     ])
@@ -181,6 +207,8 @@ const currentComponent = computed(() => {
       return Dashboard;
     case 'messages':
       return Messages;
+    case 'map':
+      return MapView;
     case 'profile':
       return Profile;
     case 'settings':
@@ -195,6 +223,7 @@ const getCurrentPageTitle = () => {
   const pageMap: Record<string, string> = {
     dashboard: '仪表盘',
     messages: '消息中心',
+    map: '地图定位',
     profile: '个人资料',
     settings: '设置'
   };
@@ -221,276 +250,32 @@ const handleUserMenuSelect = (key: string) => {
       break;
   }
 };
+
+onMounted(async () => {
+  try {
+    const token = authStore.token
+    if (token) {
+      const response = await getUserInfo(token)
+      if (response.status !== 200) {
+        message.error('获取用户信息失败，请重新登录')
+        return
+      }
+      console.log('获取用户信息:', response.data)
+      const data = response.data
+      user_info.value = {
+        id: data.id,
+        uuid: data.uuid,
+        email: data.email,
+        username: data.username,
+        avatar: data.avatar || null,
+        role: data.role
+      }
+      authStore.user = user_info.value
+    } else {
+      message.error('未登录或登录状态已过期，请重新登录')
+    }
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+  }
+})
 </script>
-
-<style scoped>
-.home-container {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background: #f5f5f5;
-  overflow: hidden;
-}
-
-/* 左侧边栏 */
-.sidebar {
-  width: 180px;
-  min-width: 180px;
-  background: white;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  transition: width 0.3s ease;
-  flex-shrink: 0;
-}
-
-.sidebar.collapsed {
-  width: 64px;
-  min-width: 64px;
-}
-
-.sidebar.collapsed .logo-text {
-  font-size: 12px;
-  opacity: 0.8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 48px;
-  transition: all 0.3s ease;
-}
-
-.sidebar.collapsed .username {
-  font-size: 10px;
-  opacity: 0.7;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 48px;
-  transition: all 0.3s ease;
-}
-
-.sidebar:not(.collapsed) .logo-text {
-  font-size: 20px;
-  opacity: 1;
-  max-width: none;
-  transition: all 0.3s ease 0.1s;
-}
-
-.sidebar:not(.collapsed) .username {
-  font-size: 14px;
-  opacity: 1;
-  max-width: none;
-  transition: all 0.3s ease 0.1s;
-}
-
-.sidebar.collapsed .sidebar-header {
-  padding: 16px 8px;
-  text-align: center;
-}
-
-.sidebar.collapsed .logo {
-  justify-content: center;
-  margin-bottom: 12px;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.sidebar.collapsed .user-info {
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-}
-
-.sidebar-header {
-  padding: 20px 12px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.logo-text {
-  font-weight: 600;
-  color: #18a058;
-  transition: all 0.3s ease;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.username {
-  color: #666;
-  transition: all 0.3s ease;
-}
-
-.menu-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px 0;
-}
-
-.menu-container :deep(.n-menu) {
-  background: transparent;
-}
-
-.menu-container :deep(.n-menu-item) {
-  margin: 4px 8px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.menu-container :deep(.n-menu-item-content) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.menu-container :deep(.n-menu-item-content-header) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.sidebar.collapsed .menu-container :deep(.n-menu-item) {
-  margin: 4px 8px;
-}
-
-.sidebar.collapsed .menu-container :deep(.n-menu-item-content) {
-  justify-content: center;
-}
-
-.menu-container :deep(.n-menu-item-content) {
-  transition: all 0.3s ease;
-}
-
-.sidebar.collapsed .menu-container :deep(.n-menu-item-content-header) {
-  opacity: 0;
-  width: 0;
-  overflow: hidden;
-}
-
-.menu-container :deep(.n-menu-item:hover) {
-  background: #f0f9ff;
-}
-
-.menu-container :deep(.n-menu-item.n-menu-item--selected) {
-  background: #e6f4ff;
-  color: #1890ff;
-}
-
-.menu-icon {
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.menu-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.sidebar-footer {
-  padding: 16px;
-  border-top: 1px solid #f0f0f0;
-  display: flex;
-  justify-content: center;
-}
-
-.collapse-btn {
-  width: 40px;
-  height: 40px;
-}
-
-/* 右侧内容区域 */
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
-  width: 100%;
-}
-
-.content-header {
-  height: 64px;
-  background: white;
-  border-bottom: 1px solid #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-}
-
-.breadcrumb :deep(.n-breadcrumb-item) {
-  font-size: 14px;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.content-body {
-  flex: 1;
-  padding: 24px;
-  overflow-y: auto;
-  background: #f5f5f5;
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 64px;
-    min-width: 64px;
-  }
-  
-  .sidebar .logo-text {
-    font-size: 10px;
-    opacity: 0.6;
-    max-width: 48px;
-  }
-  
-  .sidebar .username {
-    font-size: 9px;
-    opacity: 0.5;
-    max-width: 48px;
-  }
-  
-  .content-body {
-    padding: 16px;
-  }
-}
-
-/* 确保内部组件也遵循布局约束 */
-.content-body :deep(*) {
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* 防止内容溢出 */
-.content-body :deep(.n-card),
-.content-body :deep(.n-form),
-.content-body :deep(.n-table) {
-  max-width: 100%;
-  overflow-x: auto;
-}
-</style>
