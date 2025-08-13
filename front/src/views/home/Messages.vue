@@ -44,7 +44,7 @@
                 </div>
               </div>
               <div class="message-actions">
-                <n-dropdown :options="messageMenuOptions" @select="(key) => handleMessageAction(key, message)">
+                <n-dropdown :options="messageMenuOptions" @select="(key: string) => handleMessageAction(key, message)">
                   <n-button quaternary circle size="small">
                     <template #icon>
                       <n-icon>
@@ -119,6 +119,7 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { useMessage } from 'naive-ui';
+import '../../styles/Messages.css';
 
 interface Message {
   id: string;
@@ -275,163 +276,3 @@ const markAllRead = () => {
   message.success('所有消息已标记为已读');
 };
 </script>
-
-<style scoped>
-.messages {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.messages-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.messages-header h2 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: #262626;
-}
-
-.messages-content {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.message-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.message-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.message-item:hover {
-  background: #fafafa;
-}
-
-.message-item.unread {
-  background: #e6f4ff;
-  border-left: 4px solid #1890ff;
-}
-
-.message-item:last-child {
-  border-bottom: none;
-}
-
-.message-avatar {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.unread-dot {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #ff4d4f;
-  border: 2px solid white;
-}
-
-.message-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.sender-name {
-  font-weight: 600;
-  color: #262626;
-  font-size: 16px;
-}
-
-.message-time {
-  color: #8c8c8c;
-  font-size: 14px;
-}
-
-.message-text {
-  color: #595959;
-  font-size: 14px;
-  line-height: 1.5;
-  margin-bottom: 8px;
-}
-
-.message-type {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.type-system {
-  background: #e6f7ff;
-  color: #1890ff;
-}
-
-.type-team {
-  background: #f6ffed;
-  color: #52c41a;
-}
-
-.type-notification {
-  background: #fff7e6;
-  color: #fa8c16;
-}
-
-.message-actions {
-  flex-shrink: 0;
-}
-
-.messages-content :deep(.n-tabs-nav) {
-  margin-bottom: 24px;
-}
-
-.messages-content :deep(.n-tab-pane) {
-  padding: 0;
-}
-
-@media (max-width: 768px) {
-  .messages-header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: stretch;
-  }
-  
-  .messages-content {
-    padding: 16px;
-  }
-  
-  .message-item {
-    padding: 12px;
-  }
-  
-  .message-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-}
-</style>

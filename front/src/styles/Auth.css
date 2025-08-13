@@ -1,0 +1,253 @@
+.auth-container {
+  min-height: 100vh;
+  width: 100vw;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #18a058 100%);
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+/* 背景装饰 */
+.background-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.background-decoration::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, rgba(120, 219, 226, 0.3) 0%, transparent 50%);
+  animation: backgroundShift 15s ease-in-out infinite;
+}
+
+@keyframes backgroundShift {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1) rotate(180deg);
+    opacity: 0.8;
+  }
+}
+
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+  animation: float 8s ease-in-out infinite;
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.circle-1 {
+  width: 300px;
+  height: 300px;
+  top: -50px;
+  left: -50px;
+  animation-delay: 0s;
+}
+
+.circle-2 {
+  width: 200px;
+  height: 200px;
+  top: 40%;
+  right: -30px;
+  animation-delay: 3s;
+}
+
+.circle-3 {
+  width: 150px;
+  height: 150px;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: 6s;
+}
+
+/* 添加更多装饰圆圈 */
+.background-decoration::after {
+  content: '';
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  top: 20%;
+  right: 20%;
+  animation: float 10s ease-in-out infinite reverse;
+  backdrop-filter: blur(30px);
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.6;
+  }
+  33% {
+    transform: translateY(-30px) scale(1.05);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translateY(-15px) scale(0.95);
+    opacity: 0.7;
+  }
+}
+
+/* 认证区域 */
+.auth-wrapper {
+  width: 100%;
+  max-width: 450px;
+  padding: 40px 20px;
+  z-index: 1;
+  position: relative;
+  margin: 0 auto;
+}
+
+.auth-content {
+  width: 100%;
+}
+
+/* 头部区域 */
+.auth-header {
+  text-align: center;
+  margin-bottom: 40px;
+  color: white;
+}
+
+.logo {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  background: linear-gradient(45deg, #fff, #f0f0f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 16px;
+  margin: 0;
+  opacity: 0.9;
+  font-weight: 300;
+  transition: all 0.3s ease;
+}
+
+/* 表单容器 */
+.form-container {
+  position: relative;
+}
+
+/* 表单卡片样式 */
+.form-container :deep(.auth-card) {
+  backdrop-filter: blur(25px);
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 
+              0 0 0 1px rgba(255, 255, 255, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 40px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.form-container :deep(.auth-card::before) {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+}
+
+/* 过渡动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.4s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .auth-wrapper {
+    max-width: 100%;
+    padding: 20px;
+  }
+  
+  .form-container :deep(.auth-card) {
+    padding: 32px 24px;
+  }
+  
+  .title {
+    font-size: 28px;
+  }
+  
+  .subtitle {
+    font-size: 14px;
+  }
+  
+  .circle {
+    display: none;
+  }
+  
+  .background-decoration::after {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-wrapper {
+    padding: 10px;
+  }
+  
+  .form-container :deep(.auth-card) {
+    padding: 24px 20px;
+    margin: 0;
+  }
+  
+  .title {
+    font-size: 24px;
+  }
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .auth-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+  
+  .form-container :deep(.auth-card) {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+}

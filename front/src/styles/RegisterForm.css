@@ -1,0 +1,162 @@
+/* 注册表单样式 */
+
+/* 表单样式 */
+.auth-card :deep(.n-form-item) {
+  margin-bottom: 24px;
+}
+
+.auth-card :deep(.n-input) {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.auth-card :deep(.n-input .n-input__input-el) {
+  background: transparent;
+  color: white;
+  padding-left: 50px;
+  padding-right: 16px;
+  text-indent: 0;
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+.auth-card :deep(.n-input .n-input__input-el::placeholder) {
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.auth-card :deep(.n-input .n-input__input-el:focus::placeholder) {
+  opacity: 0.4;
+  transform: translateY(-2px);
+}
+
+.auth-card :deep(.n-input:hover) {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.auth-card :deep(.n-input.n-input--focus) {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.auth-card :deep(.n-input .n-input__prefix) {
+  padding-left: 16px;
+  padding-right: 10px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card :deep(.n-input .n-input__prefix .n-icon) {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* 表单选项 */
+.form-options {
+  margin-bottom: 32px;
+}
+
+.form-options :deep(.n-checkbox .n-checkbox__label) {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.form-options :deep(.n-checkbox .n-checkbox__label .n-button) {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.form-options :deep(.n-checkbox .n-checkbox__label .n-button:hover) {
+  color: white;
+}
+
+/* 提交按钮 */
+.submit-button {
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.submit-button:active {
+  transform: translateY(0px);
+}
+
+.submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 分割线 */
+.divider {
+  margin: 24px 0;
+}
+
+.divider :deep(.n-divider__title) {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+.divider :deep(.n-divider__line) {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 社交登录 */
+.social-login {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.social-btn {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.social-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* 切换链接 */
+.switch-link {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+.switch-link span {
+  margin-right: 8px;
+}
+
+.switch-link :deep(.n-button) {
+  color: white;
+  font-weight: 500;
+}
