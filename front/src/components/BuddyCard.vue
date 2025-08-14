@@ -9,7 +9,7 @@
     <template #header>
       <div class="card-header">
         <div class="card-header-left">
-          <div class="card-selector" @click.stop="handleSelect">
+          <div class="card-selector" @click.stop="() => handleSelect()">
             <n-checkbox 
               :checked="selected"
               @update:checked="handleSelect"
@@ -156,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { type SocialCard } from '../../model/social-cards'
+import { type SocialCard } from '../model/social-cards'
 import '../styles/BuddyCard.css'
 
 // 组件属性定义

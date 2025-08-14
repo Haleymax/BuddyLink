@@ -1,26 +1,18 @@
 
-export interface User {
-  id: number;
-  username: string;
-  avatar?: string;
-}
-
 export interface SocialCard {
   id: number;
   user_id: number;
-  title: string;
   content: string;
-  activity_type: string;
-  activity_date: number;
-  required_people?: number;
-  gender_requirement?: string;
-  status: 'active' | 'expired' | 'completed';
-  views_count: number;
-  interested_count: number;
-  applications_count: number;
+  title: string;
+  type: string;
+  images: string;
+  gender_required: 'male' | 'female' | 'any';
+  people_required: number | null;
+  people_count: number;
   is_private: boolean;
-  location?: string;
-  tags?: string;
+  location: string;
+  status: 'draft' | 'active' | 'closed' | 'deleted' | 'completed';
   date: string;
-  user?: User;
+  tags?: string;
 }
+                                               

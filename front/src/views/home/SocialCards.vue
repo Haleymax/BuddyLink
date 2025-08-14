@@ -138,7 +138,7 @@
         
         <n-form-item label="活动类型" path="activity_type">
           <n-select 
-            v-model:value="newCard.activity_type" 
+            v-model:value="newCard.type" 
             :options="activityTypeOptions"
             placeholder="选择活动类型"
           />
@@ -155,9 +155,18 @@
 
         <n-form-item label="活动时间" path="activity_date">
           <n-date-picker 
-            v-model:value="newCard.activity_date" 
+            v-model:value="newCard.date"
             type="datetime"
             placeholder="选择活动时间"
+            :is-date-disabled="disablePastDates"
+            :actions="['clear', 'now', 'confirm']"
+            @update:value="(value: number | null) => newCard.date = value ? new Date(value).toISOString() : ''"
+            :time-picker-props="{
+              actions: ['clear', 'now', 'confirm'],
+              isHourDisabled: (hour: number) => hour < new Date().getHours() && isToday(newCard.date ? Date.parse(newCard.date) : null),
+              isMinuteDisabled: (minute: number, hour: number) => hour === new Date().getHours() && minute < new Date().getMinutes() && isToday(newCard.activity_date)
+            }"
+            clearable
             style="width: 100%"
           />
         </n-form-item>
@@ -167,12 +176,12 @@
         </n-form-item>
 
         <n-form-item label="需要人数">
-          <n-input-number v-model:value="newCard.required_people" min="1" max="50" placeholder="不限" />
+          <n-input-number v-model:value="newCard.people_required" min="1" max="50" placeholder="不限" />
         </n-form-item>
 
         <n-form-item label="性别要求">
           <n-select 
-            v-model:value="newCard.gender_requirement" 
+            v-model:value="newCard.gender_required" 
             :options="genderOptions"
             placeholder="性别要求"
           />
@@ -190,9 +199,11 @@
       <template #action>
         <n-space>
           <n-button @click="closeCreateModal">取消</n-button>
-          <n-button type="primary" @click="saveCard" :loading="submitting">
-            {{ editingCard ? '保存修改' : '发布卡片' }}
-          </n-button>
+          <n-dropdown :options="saveOptions" @select="handleSave">
+            <n-button type="primary" :loading="submitting">
+              {{ editingCard ? '保存修改' : '发布卡片' }}
+            </n-button>
+          </n-dropdown>
         </n-space>
       </template>
     </n-modal>
@@ -201,15 +212,29 @@
 
 <script lang="ts" setup>
 import { ref, computed, reactive } from 'vue'
-import { useMessage, type FormInst, type FormRules } from 'naive-ui'
+import { useMessage, type FormInst, type FormRules, type DropdownOption } from 'naive-ui'
 import { type SocialCard } from '../../model/social-cards'
 import BuddyCard from '../../components/BuddyCard.vue'
 import '../../styles/SocialCards.css'
 
+const disablePastDates = (timestamp: number) => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return timestamp < today.getTime()
+}
+
+const isToday = (timestamp: number | null): boolean => {
+  if (!timestamp) return false
+  const date = new Date(timestamp)
+  const today = new Date()
+  return date.getDate() === today.getDate() &&
+         date.getMonth() === today.getMonth() &&
+         date.getFullYear() === today.getFullYear()
+}
+
 const message = useMessage()
 const formRef = ref<FormInst | null>(null)
 
-// 响应式数据
 const searchKeyword = ref('')
 const filterStatus = ref('')
 const sortBy = ref('date')
@@ -219,71 +244,60 @@ const batchDeleting = ref(false)
 const selectedCards = ref<number[]>([])
 const editingCard = ref<SocialCard | null>(null)
 
-// 分页相关
 const currentPage = ref(1)
 const pageSize = ref(12)
 
-// 模拟数据
 const cards = ref<SocialCard[]>([
   {
     id: 1,
     user_id: 1,
     title: '周末羽毛球搭子',
     content: '想找个羽毛球搭子，周末一起运动。我是新手，希望找个耐心的伙伴一起学习进步。',
-    activity_type: '运动健身',
-    activity_date: new Date('2024-08-17T10:00:00').getTime(),
-    required_people: 1,
-    gender_requirement: '不限',
+    type: '运动健身',
+    images: '',
+    gender_required: 'any',
+    people_required: 1,
+    people_count: 0,
     status: 'active',
-    views_count: 45,
-    interested_count: 8,
-    applications_count: 3,
     is_private: false,
     location: '体育馆羽毛球场',
     date: '2024-08-14T09:30:00Z',
-    tags: '运动,羽毛球,周末',
-    user: {
-      id: 1,
-      username: '当前用户',
-      avatar: ''
-    }
+    tags: '运动,羽毛球,周末'
   },
   {
     id: 2,
     user_id: 1,
     title: '电影院观影搭子',
     content: '新上映的电影想去看，但是一个人去有点无聊，找个伙伴一起去看电影聊天。',
-    activity_type: '娱乐休闲',
-    activity_date: new Date('2024-08-16T19:30:00').getTime(),
-    required_people: 2,
-    gender_requirement: '女生',
+    type: '娱乐休闲',
+    images: '',
+    gender_required: 'any',
+    people_required: 2,
+    people_count: 0,
     status: 'active',
-    views_count: 23,
-    interested_count: 5,
-    applications_count: 1,
     is_private: true,
     location: '万达影城',
     date: '2024-08-13T20:00:00Z',
-    tags: '电影,娱乐,周六',
-    user: {
-      id: 1,
-      username: '当前用户',
-      avatar: ''
-    }
+    tags: '电影,娱乐,周六'
   }
 ])
 
-// 新建卡片表单
-const newCard = reactive({
-  title: '',
-  content: '',
-  activity_type: '',
-  activity_date: null as number | null,
-  location: '',
-  required_people: null as number | null,
-  gender_requirement: '',
-  tags: '',
-  is_private: false
+
+const newCard = reactive<SocialCard>({
+    user_id: 1,
+    title: '',
+    content: '',
+    type: '',
+    images: '',
+    gender_required: 'any',
+    people_required: null,
+    people_count: 0,
+    location: '',
+    is_private: false,
+    status: 'draft',
+    date: new Date().toISOString(),
+    tags: '',
+    id: 0
 })
 
 // 表单验证规则
@@ -294,30 +308,37 @@ const formRules: FormRules = {
   content: [
     { required: true, message: '请输入活动描述', trigger: 'blur' }
   ],
-  activity_type: [
+  type: [
     { required: true, message: '请选择活动类型', trigger: 'change' }
-  ],
-  activity_date: [
-    { required: true, message: '请选择活动时间', trigger: 'change' }
   ],
   location: [
     { required: true, message: '请输入活动地点', trigger: 'blur' }
   ]
 }
 
+// 保存选项
+const saveOptions: DropdownOption[] = [
+  {
+    label: '立即发布',
+    key: 'publish'
+  },
+  {
+    label: '保存为草稿',
+    key: 'draft'
+  }
+]
+
 // 选项数据
 const statusOptions = [
   { label: '全部', value: '' },
   { label: '进行中', value: 'active' },
   { label: '已过期', value: 'expired' },
-  { label: '已完成', value: 'completed' }
+  { label: '已完成', value: 'completed' },
+  { label: '草稿', value: 'draft' }
 ]
 
 const sortOptions = [
-  { label: '最新发布', value: 'date' },
-  { label: '活动时间', value: 'activity_date' },
-  { label: '最多关注', value: 'interested' },
-  { label: '最多申请', value: 'applications' }
+  { label: '最新发布', value: 'date' }
 ]
 
 const activityTypeOptions = [
@@ -345,7 +366,7 @@ const filteredCards = computed(() => {
     result = result.filter((card: SocialCard) => 
       card.title.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
       card.content.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
-      card.activity_type.toLowerCase().includes(searchKeyword.value.toLowerCase())
+      card.type.toLowerCase().includes(searchKeyword.value.toLowerCase())
     )
   }
 
@@ -357,12 +378,6 @@ const filteredCards = computed(() => {
   // 排序
   result.sort((a: SocialCard, b: SocialCard) => {
     switch (sortBy.value) {
-      case 'activity_date':
-        return (a.activity_date || 0) - (b.activity_date || 0)
-      case 'interested':
-        return b.interested_count - a.interested_count
-      case 'applications':
-        return b.applications_count - a.applications_count
       case 'date':
       default:
         return new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -420,7 +435,7 @@ const toggleCardSelection = (cardId: number, checked?: boolean) => {
 const handleCardClick = (card: SocialCard) => {
   // 点击卡片查看详情或切换选择
   if (selectedCards.value.length > 0) {
-    toggleCardSelection(card.id)
+    if (card.id) toggleCardSelection(card.id)
   } else {
     message.info(`查看卡片详情：${card.title}`)
   }
@@ -434,7 +449,7 @@ const handleBatchDelete = async () => {
     // 模拟删除
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    cards.value = cards.value.filter(card => !selectedCards.value.includes(card.id))
+    cards.value = cards.value.filter(card => !card.id || !selectedCards.value.includes(card.id))
     message.success(`成功删除 ${selectedCards.value.length} 张卡片`)
     selectedCards.value = []
   } catch (error) {
@@ -449,11 +464,10 @@ const editCard = (card: SocialCard) => {
   Object.assign(newCard, {
     title: card.title,
     content: card.content,
-    activity_type: card.activity_type,
-    activity_date: card.activity_date,
+    type: card.type,
     location: card.location,
-    required_people: card.required_people,
-    gender_requirement: card.gender_requirement || '',
+    people_required: card.people_required,
+    gender_required: card.gender_required,
     tags: card.tags || '',
     is_private: card.is_private
   })
@@ -475,17 +489,19 @@ const closeCreateModal = () => {
   Object.assign(newCard, {
     title: '',
     content: '',
-    activity_type: '',
-    activity_date: null,
+    type: '',
+    images: '',
     location: '',
-    required_people: null,
-    gender_requirement: '',
+    people_required: null,
+    gender_required: 'any',
+    people_count: 0,
     tags: '',
-    is_private: false
+    is_private: false,
+    date: new Date().toISOString()
   })
 }
 
-const saveCard = async () => {
+const handleSave = async (key: string) => {
   if (!formRef.value) return
   
   try {
@@ -501,44 +517,39 @@ const saveCard = async () => {
           Object.assign(cards.value[index], {
             title: newCard.title,
             content: newCard.content,
-            activity_type: newCard.activity_type,
-            activity_date: newCard.activity_date,
+            type: newCard.type,
             location: newCard.location,
-            required_people: newCard.required_people,
-            gender_requirement: newCard.gender_requirement,
+            people_required: newCard.people_required,
+            gender_required: newCard.gender_required,
             tags: newCard.tags,
-            is_private: newCard.is_private
+            is_private: newCard.is_private,
+            status: key === 'draft' ? 'draft' : 'active',
+            date: new Date().toISOString()
           })
-          message.success('卡片更新成功')
+          message.success(key === 'draft' ? '已保存为草稿' : '卡片更新成功')
         }
       } else {
         // 创建模式
         const newCardData: SocialCard = {
-          id: cards.value.length + 1,
           user_id: 1,
           title: newCard.title,
           content: newCard.content,
-          activity_type: newCard.activity_type,
-          activity_date: newCard.activity_date || Date.now(),
+          type: newCard.type,
+          images: '',
           location: newCard.location,
-          required_people: newCard.required_people || undefined,
-          gender_requirement: newCard.gender_requirement || undefined,
+          people_required: newCard.people_required,
+          people_count: 0,
+          gender_required: newCard.gender_required,
           tags: newCard.tags,
           is_private: newCard.is_private,
-          status: 'active',
-          views_count: 0,
-          interested_count: 0,
-          applications_count: 0,
-          date: new Date().toISOString(),
-          user: {
-            id: 1,
-            username: '当前用户',
-            avatar: ''
-          }
+          status: key === 'draft' ? 'draft' : 'active',
+          date: new Date().toISOString()
         }
-        
+
+        console.log(newCardData)
+
         cards.value.unshift(newCardData)
-        message.success('搭子卡片发布成功')
+        message.success(key === 'draft' ? '已保存为草稿' : '搭子卡片发布成功')
       }
       
       closeCreateModal()
