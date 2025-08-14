@@ -12,14 +12,16 @@
           <span class="logo-text">BuddyLink</span>
         </div>
         <div class="user-info">
-          <n-avatar round size="small">
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
-              </svg>
-            </n-icon>
+          <n-avatar round size="small" :src="user_info.avatar || undefined">
+            <template v-if="!user_info.avatar">
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+                </svg>
+              </n-icon>
+            </template>
           </n-avatar>
-          <span class="username">欢迎回来</span>
+          <span class="username">{{ user_info.username ? `欢迎回来，${user_info.username}` : '欢迎回来' }}</span>
         </div>
       </div>
 
@@ -95,9 +97,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, h, onMounted, type VNodeChild} from 'vue';
-import { c, useMessage } from 'naive-ui';
-import type { MenuOption, MessageOptions, MessageReactive } from 'naive-ui';
+import { ref, computed, h, onMounted} from 'vue';
+import { useMessage } from 'naive-ui';
+import type { MenuOption } from 'naive-ui';
 import type { User } from '../stores/auth.store';
 import '../styles/Home.css';
 import { useAuthStore } from '../stores/auth.store'
@@ -108,8 +110,6 @@ import Profile from './home/Profile.vue';
 import Settings from './home/Settings.vue';
 import Messages from './home/Messages.vue';
 import MapView from './home/MapView.vue';
-import { getUserInfo } from '../api/auth';
-import { error } from 'naive-ui/es/_utils/naive/warn';
 import { useFetchUserInfo } from '../common/get_user_info';
 import router from '../router';
 

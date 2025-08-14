@@ -5,6 +5,13 @@ type Notify = {
     error?: (msg: string) => void
 }
 
+// 定义API响应的类型
+interface ApiResponse {
+    code: number
+    data: any
+    message: string
+}
+
 export function useFetchUserInfo() {
     const authStore = useAuthStore()
 
@@ -35,7 +42,7 @@ export function useFetchUserInfo() {
         
         try {
             console.log('Calling getUserInfo API...')
-            const response = await getUserInfo(token)
+            const response = await getUserInfo(token) as unknown as ApiResponse
             console.log('getUserInfo response:', response)
             
             if (response.code !== 200) {
