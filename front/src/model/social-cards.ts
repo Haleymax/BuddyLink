@@ -1,4 +1,3 @@
-// 社交卡片类型定义
 
 export interface User {
   id: number;

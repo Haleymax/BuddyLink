@@ -9,7 +9,6 @@ export const login = (data: LoginFormData) => {
     })
 }
 
-// 用于注册用户的接口 使用的是表单数据
 export const register = (data: RegisterFormData) => {
     const formData = new FormData();
     formData.append('email', data.email);
@@ -28,7 +27,6 @@ export const register = (data: RegisterFormData) => {
 }
 
 
-// 用于发送验证码的接口 使用的是表单数据
 export const sendVerificationCode = (email: string) => {
     const formData = new FormData();
     formData.append('email', email);
