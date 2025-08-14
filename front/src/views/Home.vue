@@ -110,6 +110,7 @@ import Profile from './home/Profile.vue';
 import Settings from './home/Settings.vue';
 import Messages from './home/Messages.vue';
 import MapView from './home/MapView.vue';
+import SocialCards from './home/SocialCards.vue';
 import { useFetchUserInfo } from '../common/get_user_info';
 import router from '../router';
 
@@ -131,6 +132,18 @@ const menuOptions: MenuOption[] = [
         h('path', { 
           fill: 'currentColor', 
           d: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z' 
+        })
+      ])
+    ])
+  },
+  {
+    label: '社交卡片',
+    key: 'social-cards',
+    icon: () => h('div', { class: 'menu-icon' }, [
+      h('svg', { viewBox: '0 0 24 24' }, [
+        h('path', { 
+          fill: 'currentColor', 
+          d: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z' 
         })
       ])
     ])
@@ -209,6 +222,8 @@ const currentComponent = computed(() => {
   switch (activeKey.value) {
     case 'dashboard':
       return Dashboard;
+    case 'social-cards':
+      return SocialCards;
     case 'messages':
       return Messages;
     case 'map':
@@ -226,6 +241,7 @@ const currentComponent = computed(() => {
 const getCurrentPageTitle = () => {
   const pageMap: Record<string, string> = {
     dashboard: '仪表盘',
+    'social-cards': '社交卡片',
     messages: '消息中心',
     map: '地图定位',
     profile: '个人资料',
