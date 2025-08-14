@@ -12,14 +12,16 @@
           <span class="logo-text">BuddyLink</span>
         </div>
         <div class="user-info">
-          <n-avatar round size="small">
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
-              </svg>
-            </n-icon>
+          <n-avatar round size="small" :src="user_info.avatar || undefined">
+            <template v-if="!user_info.avatar">
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+                </svg>
+              </n-icon>
+            </template>
           </n-avatar>
-          <span class="username">欢迎回来</span>
+          <span class="username">{{ user_info.username ? `欢迎回来，${user_info.username}` : '欢迎回来' }}</span>
         </div>
       </div>
 
@@ -96,7 +98,7 @@
 
 <script lang="ts" setup>
 import { ref, computed, h, onMounted} from 'vue';
-import { c, useMessage } from 'naive-ui';
+import { useMessage } from 'naive-ui';
 import type { MenuOption } from 'naive-ui';
 import type { User } from '../stores/auth.store';
 import '../styles/Home.css';
@@ -108,7 +110,9 @@ import Profile from './home/Profile.vue';
 import Settings from './home/Settings.vue';
 import Messages from './home/Messages.vue';
 import MapView from './home/MapView.vue';
-import { getUserInfo } from '../api/auth';
+import SocialCards from './home/SocialCards.vue';
+import { useFetchUserInfo } from '../common/get_user_info';
+import router from '../router';
 
 const message = useMessage();
 const collapsed = ref(false);
@@ -116,6 +120,7 @@ const activeKey = ref('dashboard');
 
 const user_info = ref<User>({})
 const authStore = useAuthStore()
+const { fetchUserInfoOnce } = useFetchUserInfo()
 
 // 菜单选项
 const menuOptions: MenuOption[] = [
@@ -127,6 +132,18 @@ const menuOptions: MenuOption[] = [
         h('path', { 
           fill: 'currentColor', 
           d: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z' 
+        })
+      ])
+    ])
+  },
+  {
+    label: '社交卡片',
+    key: 'social-cards',
+    icon: () => h('div', { class: 'menu-icon' }, [
+      h('svg', { viewBox: '0 0 24 24' }, [
+        h('path', { 
+          fill: 'currentColor', 
+          d: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z' 
         })
       ])
     ])
@@ -205,6 +222,8 @@ const currentComponent = computed(() => {
   switch (activeKey.value) {
     case 'dashboard':
       return Dashboard;
+    case 'social-cards':
+      return SocialCards;
     case 'messages':
       return Messages;
     case 'map':
@@ -222,6 +241,7 @@ const currentComponent = computed(() => {
 const getCurrentPageTitle = () => {
   const pageMap: Record<string, string> = {
     dashboard: '仪表盘',
+    'social-cards': '社交卡片',
     messages: '消息中心',
     map: '地图定位',
     profile: '个人资料',
@@ -252,30 +272,28 @@ const handleUserMenuSelect = (key: string) => {
 };
 
 onMounted(async () => {
-  try {
-    const token = authStore.token
-    if (token) {
-      const response = await getUserInfo(token)
-      if (response.status !== 200) {
-        message.error('获取用户信息失败，请重新登录')
-        return
-      }
-      console.log('获取用户信息:', response.data)
-      const data = response.data
-      user_info.value = {
-        id: data.id,
-        uuid: data.uuid,
-        email: data.email,
-        username: data.username,
-        avatar: data.avatar || null,
-        role: data.role
-      }
-      authStore.user = user_info.value
-    } else {
-      message.error('未登录或登录状态已过期，请重新登录')
-    }
-  } catch (error) {
-    console.error('获取用户信息失败:', error)
+  console.log('Home component mounted, checking authentication...');
+  console.log('Current token:', authStore.token);
+  
+  if (!authStore.token) {
+    console.log('No token found, redirecting to login');
+    message.error('未登录，请先登录');
+    router.push('/login');
+    return;
+  }
+
+  const res = await fetchUserInfoOnce({error: message.error});
+  console.log('fetchUserInfoOnce result:', res);
+  console.log('User info:', res.data);
+  if (res.ok && res.data) {
+    user_info.value = res.data;
+    console.log('User info loaded successfully:', res.data);
+  } else {
+    console.log('Failed to get user info, clearing auth and redirecting');
+    message.error('获取用户信息失败，请重新登录');
+    authStore.clearAuth();
+    router.push('/login');
   }
 })
+
 </script>
