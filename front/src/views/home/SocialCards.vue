@@ -211,11 +211,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { useMessage, type FormInst, type FormRules, type DropdownOption } from 'naive-ui'
 import { type SocialCard } from '../../model/social-cards'
 import BuddyCard from '../../components/BuddyCard.vue'
 import '../../styles/SocialCards.css'
+import { createSocialCard, getSocialCards } from '../../api/social-cards'
+import type { ApiResponse } from '../../api/apiResponse'
+import { useAuthStore } from '../../stores/auth.store'
+import router from '../../router'
 
 const disablePastDates = (timestamp: number) => {
   const today = new Date()
@@ -234,6 +238,7 @@ const isToday = (timestamp: number | null): boolean => {
 
 const message = useMessage()
 const formRef = ref<FormInst | null>(null)
+const authStore = useAuthStore()
 
 const searchKeyword = ref('')
 const filterStatus = ref('')
@@ -247,40 +252,7 @@ const editingCard = ref<SocialCard | null>(null)
 const currentPage = ref(1)
 const pageSize = ref(12)
 
-const cards = ref<SocialCard[]>([
-  {
-    id: 1,
-    user_id: 1,
-    title: '周末羽毛球搭子',
-    content: '想找个羽毛球搭子，周末一起运动。我是新手，希望找个耐心的伙伴一起学习进步。',
-    type: '运动健身',
-    images: '',
-    gender_required: 'any',
-    people_required: 1,
-    people_count: 0,
-    status: 'active',
-    is_private: false,
-    location: '体育馆羽毛球场',
-    date: '2024-08-14T09:30:00Z',
-    tags: '运动,羽毛球,周末'
-  },
-  {
-    id: 2,
-    user_id: 1,
-    title: '电影院观影搭子',
-    content: '新上映的电影想去看，但是一个人去有点无聊，找个伙伴一起去看电影聊天。',
-    type: '娱乐休闲',
-    images: '',
-    gender_required: 'any',
-    people_required: 2,
-    people_count: 0,
-    status: 'active',
-    is_private: true,
-    location: '万达影城',
-    date: '2024-08-13T20:00:00Z',
-    tags: '电影,娱乐,周六'
-  }
-])
+const cards = ref<SocialCard[]>([])
 
 
 const newCard = reactive<SocialCard>({
@@ -352,7 +324,7 @@ const activityTypeOptions = [
 ]
 
 const genderOptions = [
-  { label: '不限', value: '' },
+  { label: '不限', value: 'any' },
   { label: '男生', value: '男生' },
   { label: '女生', value: '女生' }
 ]
@@ -509,7 +481,7 @@ const handleSave = async (key: string) => {
     submitting.value = true
     
     // 模拟API调用
-    setTimeout(() => {
+    setTimeout(async () => {
       if (editingCard.value) {
         // 编辑模式
         const index = cards.value.findIndex(c => c.id === editingCard.value!.id)
@@ -543,13 +515,29 @@ const handleSave = async (key: string) => {
           tags: newCard.tags,
           is_private: newCard.is_private,
           status: key === 'draft' ? 'draft' : 'active',
-          date: new Date().toISOString()
+          date: new Date().toISOString(),
         }
 
         console.log(newCardData)
 
+        const token = authStore.token
+        if (!token) {
+          message.error('请先登录')
+          submitting.value = false
+          router.push('/login')
+          return
+        }
+
+        const response = await createSocialCard(token, newCardData) as unknown as ApiResponse
+        if (response.code !== 200) {
+          message.error(response.message || '创建卡片失败，请稍后再试')
+          submitting.value = false
+          return
+        }
+        message.success('卡片创建成功')
+        console.log('New card created:', response.data)
+        console.log(response.message)
         cards.value.unshift(newCardData)
-        message.success(key === 'draft' ? '已保存为草稿' : '搭子卡片发布成功')
       }
       
       closeCreateModal()
@@ -561,4 +549,41 @@ const handleSave = async (key: string) => {
     submitting.value = false
   }
 }
+
+onMounted(async () => {
+  try {
+    const response = await getSocialCards({
+      user_id: authStore.user?.id,
+      token: authStore.token ?? ''
+    }) as unknown as ApiResponse
+    
+    if (response.code !== 200) {
+      message.error(response.message || '获取卡片列表失败，请稍后再试')
+      return
+    }
+
+    // 确保数据格式正确
+    cards.value = response.data.map((card: any) => ({
+      id: card.id,
+      user_id: card.user_id,
+      title: card.title,
+      content: card.content,
+      type: card.type,
+      images: card.images || '',
+      gender_required: card.gender_required,
+      people_required: card.people_required,
+      people_count: card.people_count,
+      location: card.location,
+      is_private: card.is_private,
+      status: card.status,
+      date: card.date,
+      tags: card.tags
+    }))
+    
+    console.log('Cards loaded successfully:', cards.value)
+  } catch (error) {
+    console.error('Error fetching cards:', error)
+    message.error('加载卡片列表时发生错误')
+  }
+});
 </script>

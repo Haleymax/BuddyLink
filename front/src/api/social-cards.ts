@@ -1,7 +1,6 @@
 import type { SocialCard } from '../model/social-cards';
 import request from '../utils/request';
 
-// 社交卡片相关接口
 
 // 获取社交卡片列表
 export const getSocialCards = (params?: {
@@ -11,11 +10,14 @@ export const getSocialCards = (params?: {
     privacy?: 'public' | 'private' | '';
     sort?: 'date' | 'likes' | 'comments';
     user_id?: number;
+    token:string;
 }) => {
     return request({
-        url: '/api/v1/social-cards',
+        url: '/api/v1/social_card/card/user/'+params?.user_id,
         method: 'get',
-        params
+        headers: {
+            "Authorization": params?.token,
+        },
     });
 };
 
@@ -28,10 +30,14 @@ export const getSocialCard = (id: number) => {
 };
 
 // 创建社交卡片
-export const createSocialCard = (data: SocialCard) => {
+export const createSocialCard = (token:string, data: SocialCard) => {
+
     return request({
-        url: '/api/v1/social_cards/card',
+        url: '/api/v1/social_card/card',
         method: 'post',
+        headers: {
+            "Authorization": token,
+        },
         data
     });
 };

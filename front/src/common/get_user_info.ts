@@ -1,16 +1,11 @@
 import { useAuthStore } from '../stores/auth.store'
 import { getUserInfo } from '../api/auth'
+import type { ApiResponse } from '../api/apiResponse'
 
 type Notify = {
     error?: (msg: string) => void
 }
 
-// 定义API响应的类型
-interface ApiResponse {
-    code: number
-    data: any
-    message: string
-}
 
 export function useFetchUserInfo() {
     const authStore = useAuthStore()

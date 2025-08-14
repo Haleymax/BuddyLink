@@ -18,7 +18,7 @@
           <div class="card-title-section">
             <h3 class="card-title">{{ card.title }}</h3>
             <n-tag type="info" size="small" class="activity-tag">
-              {{ card.activity_type }}
+              {{ card.type }}
             </n-tag>
           </div>
         </div>
@@ -52,7 +52,7 @@
             </n-icon>
             <span>活动时间</span>
           </div>
-          <div class="info-value">{{ formatActivityDate(card.activity_date) }}</div>
+          <div class="info-value">{{ formatActivityDate(card.date) }}</div>
         </div>
 
         <div class="info-item" v-if="card.location">
@@ -81,7 +81,7 @@
             </n-icon>
             <span>需要人数</span>
           </div>
-          <div class="info-value">{{ card.required_people || '不限' }}</div>
+          <div class="info-value">{{ card.people_required || '不限' }}</div>
         </div>
 
         <div class="info-item">
@@ -93,7 +93,7 @@
             </n-icon>
             <span>性别要求</span>
           </div>
-          <div class="info-value">{{ card.gender_requirement || '不限' }}</div>
+          <div class="info-value">{{ card.gender_required || '不限' }}</div>
         </div>
       </div>
 
@@ -188,9 +188,13 @@ const handleSelect = (checked?: boolean) => {
   emit('select', checked ?? !props.selected)
 }
 
-const formatActivityDate = (timestamp: number): string => {
-  const date = new Date(timestamp)
+const formatActivityDate = (dateStr: string): string => {
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) {
+    return '时间未设置'
+  }
   return date.toLocaleString('zh-CN', {
+    year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
