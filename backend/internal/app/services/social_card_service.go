@@ -10,7 +10,7 @@ type SocialCardService interface {
 	AddCard(card models.SocialCard) error
 	UpdateCard(oldDataID uint64, newData models.SocialCard) error
 	FindById(cardID uint64) (models.SocialCard, error)
-	FindByUserId(userID uint64) ([]models.SocialCard, error)
+	FindByUserId(userID uint64) ([]map[string]interface{}, error)
 	Delete(card models.SocialCard) error
 	DeleteByID(ID uint64) error
 	DeleteByUserId(userID uint64) error
@@ -56,13 +56,31 @@ func (s *socialCardService) UpdateCard(oldData_id uint64, newData models.SocialC
 	return nil
 }
 
-func (s *socialCardService) FindByUserId(userID uint64) ([]models.SocialCard, error) {
+func (s *socialCardService) FindByUserId(userID uint64) ([]map[string]interface{}, error) {
 	// find cards by user ID
 	cards, err := s.SocialRepo.FindByUserId(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find cards for user ID %d: %w", userID, err)
 	}
-	return cards, nil
+	var cardsInfo []map[string]interface{}
+	for _, card := range cards {
+		cardsInfo = append(cardsInfo, map[string]interface{}{
+			"id":              card.ID,
+			"user_id":         userID,
+			"content":         card.Content,
+			"title":           card.Title,
+			"type":            card.Type,
+			"images":          card.Images,
+			"gender_required": card.GenderRequired,
+			"people_count":    card.PeopleCount,
+			"is_private":      card.IsPrivate,
+			"location":        card.Location,
+			"status":          card.Status,
+			"date":            card.Date,
+			"tags":            card.Tags,
+		})
+	}
+	return cardsInfo, nil
 }
 
 func (s *socialCardService) FindById(cardID uint64) (models.SocialCard, error) {
