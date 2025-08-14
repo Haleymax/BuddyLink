@@ -4,12 +4,12 @@ import (
 	"buddylink/config"
 	"context"
 	"fmt"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"io"
 	"log"
 	"net/http"
-	"time"
+
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 var minioClient MinioClient
@@ -92,12 +92,10 @@ func (m *MinioImpl) GetUrl(bucket string, filename string) (string, error) {
 		return "", err
 	}
 
-	url, err := m.client.PresignedGetObject(m.ctx, bucket, filename, 7*24*time.Hour, nil)
-	if err != nil {
-		log.Printf("Error getting file %s: %s", filename, err)
-		return "", err
-	}
-	return url.String(), nil
+	minio_config := config.GetConfig().Minio
+	url := minio_config.Endpoint + "/" + bucket + "/" + filename
+
+	return url, nil
 }
 
 func (m *MinioImpl) DeleteFileFormBucket(bucket, filename string) error {
