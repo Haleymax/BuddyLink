@@ -40,7 +40,7 @@ func (sc *SocialCardController) AddCard(c *gin.Context) {
 		return
 	}
 
-	if socialCard.Title == "" || socialCard.Content == "" || socialCard.Location == "" {
+	if socialCard.Title == "" || socialCard.Content == "" || socialCard.Location == nil || len(socialCard.Location) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    http.StatusBadRequest,
 			"message": "title, content or location is empty",
@@ -142,6 +142,10 @@ func (sc *SocialCardController) FindByUserId(c *gin.Context) {
 			"data":    nil,
 		})
 		return
+	}
+
+	if cards == nil {
+		cards = []map[string]interface{}{}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
