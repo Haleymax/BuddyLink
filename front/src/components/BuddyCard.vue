@@ -65,7 +65,7 @@
             <span>活动地点</span>
           </div>
           <div class="info-value">
-            {{ card.location }}
+            {{ card.location.address || '未设置' }}
             <n-tag v-if="card.is_private" type="warning" size="tiny" class="privacy-tag">
               私密
             </n-tag>

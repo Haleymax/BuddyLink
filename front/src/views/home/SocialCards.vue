@@ -264,18 +264,18 @@ import { useAuthStore } from '../../stores/auth.store'
 import router from '../../router'
 
 const disablePastDates = (timestamp: number) => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  return timestamp < today.getTime()
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return timestamp < today.getTime()
 }
 
 const isToday = (timestamp: number | null): boolean => {
-  if (!timestamp) return false
-  const date = new Date(timestamp)
-  const today = new Date()
-  return date.getDate() === today.getDate() &&
-         date.getMonth() === today.getMonth() &&
-         date.getFullYear() === today.getFullYear()
+    if (!timestamp) return false
+    const date = new Date(timestamp)
+    const today = new Date()
+    return date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear()
 }
 
 const message = useMessage()
@@ -305,23 +305,23 @@ const showLocationSelector = ref(false)
 
 // 处理标签更新
 const handleTagsUpdate = (tags: string[]) => {
-  tagList.value = tags
-  newCard.tags = tags
+    tagList.value = tags
+    newCard.tags = tags
 }
 
 // 处理位置选择
 const handleLocationSelected = (location: Location) => {
-  selectedLocation.value = location
-  newCard.location = location
-  showLocationSelector.value = false  // 选择位置后自动关闭模态框
-  message.success('位置选择成功！')
+    selectedLocation.value = location
+    newCard.location = location
+    showLocationSelector.value = false  // 选择位置后自动关闭模态框
+    message.success('位置选择成功！')
 }
 
 // 清除选择的位置
 const clearSelectedLocation = () => {
-  selectedLocation.value = null
-  newCard.location = { longitude: 0, latitude: 0, address: '' }
-  message.info('已清除位置信息')
+    selectedLocation.value = null
+    newCard.location = { longitude: 0, latitude: 0, address: '' }
+    message.info('已清除位置信息')
 }
 
 const newCard = reactive<SocialCard>({
@@ -343,329 +343,333 @@ const newCard = reactive<SocialCard>({
 
 // 表单验证规则
 const formRules: FormRules = {
-  title: [
-    { required: true, message: '请输入活动标题', trigger: 'blur' }
-  ],
-  content: [
-    { required: true, message: '请输入活动描述', trigger: 'blur' }
-  ],
-  type: [
-    { required: true, message: '请选择活动类型', trigger: 'change' }
-  ],
-  location: [
-    { 
-      required: true, 
-      validator: (_rule: any, value: Location) => {
-        if (!value || !value.address) {
-          return new Error('请选择活动地点')
+    title: [
+        { required: true, message: '请输入活动标题', trigger: 'blur' }
+    ],
+    content: [
+        { required: true, message: '请输入活动描述', trigger: 'blur' }
+    ],
+    type: [
+        { required: true, message: '请选择活动类型', trigger: 'change' }
+    ],
+    location: [
+        {
+            required: true,
+            validator: (_rule: any, value: Location) => {
+                if (!value || !value.address) {
+                    return new Error('请选择活动地点')
+                }
+                return true
+            },
+            trigger: 'change'
         }
-        return true
-      },
-      trigger: 'change' 
-    }
-  ]
+    ]
 }
 
 // 保存选项
 const saveOptions: DropdownOption[] = [
-  {
-    label: '立即发布',
-    key: 'publish'
-  },
-  {
-    label: '保存为草稿',
-    key: 'draft'
-  }
+    {
+        label: '立即发布',
+        key: 'publish'
+    },
+    {
+        label: '保存为草稿',
+        key: 'draft'
+    }
 ]
 
 // 选项数据
 const statusOptions = [
-  { label: '全部', value: '' },
-  { label: '进行中', value: 'active' },
-  { label: '已过期', value: 'expired' },
-  { label: '已完成', value: 'completed' },
-  { label: '草稿', value: 'draft' }
+    { label: '全部', value: '' },
+    { label: '进行中', value: 'active' },
+    { label: '已过期', value: 'expired' },
+    { label: '已完成', value: 'completed' },
+    { label: '草稿', value: 'draft' }
 ]
 
 const sortOptions = [
-  { label: '最新发布', value: 'date' }
+    { label: '最新发布', value: 'date' }
 ]
 
 const activityTypeOptions = [
-  { label: '运动健身', value: '运动健身' },
-  { label: '娱乐休闲', value: '娱乐休闲' },
-  { label: '学习交流', value: '学习交流' },
-  { label: '旅行出游', value: '旅行出游' },
-  { label: '美食探店', value: '美食探店' },
-  { label: '文化艺术', value: '文化艺术' },
-  { label: '其他', value: '其他' }
+    { label: '运动健身', value: '运动健身' },
+    { label: '娱乐休闲', value: '娱乐休闲' },
+    { label: '学习交流', value: '学习交流' },
+    { label: '旅行出游', value: '旅行出游' },
+    { label: '美食探店', value: '美食探店' },
+    { label: '文化艺术', value: '文化艺术' },
+    { label: '其他', value: '其他' }
 ]
 
 const genderOptions = [
-  { label: '不限', value: 'any' },
-  { label: '男生', value: '男生' },
-  { label: '女生', value: '女生' }
+    { label: '不限', value: 'any' },
+    { label: '男生', value: '男生' },
+    { label: '女生', value: '女生' }
 ]
 
-  // 计算属性
+// 计算属性
 const filteredCards = computed(() => {
-  let result = cards.value
+    let result = cards.value
 
-  // 搜索过滤
-  if (searchKeyword.value) {
-    result = result.filter((card: SocialCard) => 
-      card.title.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
-      card.content.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
-      card.type.toLowerCase().includes(searchKeyword.value.toLowerCase())
-    )
-  }
-
-  // 状态过滤
-  if (filterStatus.value) {
-    result = result.filter((card: SocialCard) => card.status === filterStatus.value)
-  }
-
-  // 排序
-  result.sort((a: SocialCard, b: SocialCard) => {
-    switch (sortBy.value) {
-      case 'date':
-      default:
-        return new Date(b.date).getTime() - new Date(a.date).getTime()
+    // 搜索过滤
+    if (searchKeyword.value) {
+        result = result.filter((card: SocialCard) =>
+            card.title.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
+            card.content.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
+            card.type.toLowerCase().includes(searchKeyword.value.toLowerCase())
+        )
     }
-  })
 
-  return result
+    // 状态过滤
+    if (filterStatus.value) {
+        result = result.filter((card: SocialCard) => card.status === filterStatus.value)
+    }
+
+    // 排序
+    result.sort((a: SocialCard, b: SocialCard) => {
+        switch (sortBy.value) {
+            case 'date':
+            default:
+                return new Date(b.date).getTime() - new Date(a.date).getTime()
+        }
+    })
+
+    return result
 })
 
 // 分页后的卡片列表
 const paginatedCards = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredCards.value.slice(start, end)
+    const start = (currentPage.value - 1) * pageSize.value
+    const end = start + pageSize.value
+    return filteredCards.value.slice(start, end)
 })
 
 // 分页相关方法
 const handlePageChange = (page: number) => {
-  currentPage.value = page
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+    currentPage.value = page
+    window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const handlePageSizeChange = (size: number) => {
-  pageSize.value = size
-  // 当每页数量改变时，可能需要调整当前页码
-  const maxPage = Math.ceil(filteredCards.value.length / size)
-  if (currentPage.value > maxPage) {
-    currentPage.value = maxPage
-  }
+    pageSize.value = size
+    // 当每页数量改变时，可能需要调整当前页码
+    const maxPage = Math.ceil(filteredCards.value.length / size)
+    if (currentPage.value > maxPage) {
+        currentPage.value = maxPage
+    }
 }// 方法
 const toggleCardSelection = (cardId: number, checked?: boolean) => {
-  if (checked === undefined) {
-    // 点击卡片区域时切换选择
-    const index = selectedCards.value.indexOf(cardId)
-    if (index > -1) {
-      selectedCards.value.splice(index, 1)
+    if (checked === undefined) {
+        // 点击卡片区域时切换选择
+        const index = selectedCards.value.indexOf(cardId)
+        if (index > -1) {
+            selectedCards.value.splice(index, 1)
+        } else {
+            selectedCards.value.push(cardId)
+        }
     } else {
-      selectedCards.value.push(cardId)
+        // checkbox 状态变化
+        if (checked) {
+            if (!selectedCards.value.includes(cardId)) {
+                selectedCards.value.push(cardId)
+            }
+        } else {
+            const index = selectedCards.value.indexOf(cardId)
+            if (index > -1) {
+                selectedCards.value.splice(index, 1)
+            }
+        }
     }
-  } else {
-    // checkbox 状态变化
-    if (checked) {
-      if (!selectedCards.value.includes(cardId)) {
-        selectedCards.value.push(cardId)
-      }
-    } else {
-      const index = selectedCards.value.indexOf(cardId)
-      if (index > -1) {
-        selectedCards.value.splice(index, 1)
-      }
-    }
-  }
 }
 
 const handleCardClick = (card: SocialCard) => {
-  // 点击卡片查看详情或切换选择
-  if (selectedCards.value.length > 0) {
-    if (card.id) toggleCardSelection(card.id)
-  } else {
-    message.info(`查看卡片详情：${card.title}`)
-  }
+    // 点击卡片查看详情或切换选择
+    if (selectedCards.value.length > 0) {
+        if (card.id) toggleCardSelection(card.id)
+    } else {
+        message.info(`查看卡片详情：${card.title}`)
+    }
 }
 
 const handleBatchDelete = async () => {
-  if (selectedCards.value.length === 0) return
-  
-  try {
-    batchDeleting.value = true
-    // 模拟删除
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    cards.value = cards.value.filter(card => !card.id || !selectedCards.value.includes(card.id))
-    message.success(`成功删除 ${selectedCards.value.length} 张卡片`)
-    selectedCards.value = []
-  } catch (error) {
-    message.error('删除失败，请重试')
-  } finally {
-    batchDeleting.value = false
-  }
+    if (selectedCards.value.length === 0) return
+
+    try {
+        batchDeleting.value = true
+        // 模拟删除
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        cards.value = cards.value.filter(card => !card.id || !selectedCards.value.includes(card.id))
+        message.success(`成功删除 ${selectedCards.value.length} 张卡片`)
+        selectedCards.value = []
+    } catch (error) {
+        message.error('删除失败，请重试')
+    } finally {
+        batchDeleting.value = false
+    }
 }
 
 const editCard = (card: SocialCard) => {
-  editingCard.value = card
-  Object.assign(newCard, {
-    title: card.title,
-    content: card.content,
-    type: card.type,
-    location: card.location,
-    people_required: card.people_required,
-    gender_required: card.gender_required,
-    tags: card.tags || [],
-    is_private: card.is_private
-  })
-  tagList.value = card.tags || []
-  selectedLocation.value = card.location
-  showCreateModal.value = true
+    editingCard.value = card
+    Object.assign(newCard, {
+        title: card.title,
+        content: card.content,
+        type: card.type,
+        location: card.location,
+        people_required: card.people_required,
+        gender_required: card.gender_required,
+        tags: card.tags || [],
+        is_private: card.is_private
+    })
+    tagList.value = card.tags || []
+    selectedLocation.value = card.location
+    showCreateModal.value = true
 }
 
 const deleteCard = (card: SocialCard) => {
-  const index = cards.value.findIndex(c => c.id === card.id)
-  if (index > -1) {
-    cards.value.splice(index, 1)
-    message.success('卡片已删除')
-  }
+    const index = cards.value.findIndex(c => c.id === card.id)
+    if (index > -1) {
+        cards.value.splice(index, 1)
+        message.success('卡片已删除')
+    }
 }
 
 const closeCreateModal = () => {
-  showCreateModal.value = false
-  editingCard.value = null
-  selectedLocation.value = null
-  // 重置表单
-  Object.assign(newCard, {
-    title: '',
-    content: '',
-    type: '',
-    images: '',
-    location: { longitude: 0, latitude: 0, address: '' },
-    people_required: null,
-    gender_required: 'any',
-    people_count: 0,
-    tags: [],
-    is_private: false,
-    date: new Date().toISOString()
-  })
-  tagList.value = []
+    showCreateModal.value = false
+    editingCard.value = null
+    selectedLocation.value = null
+    // 重置表单
+    Object.assign(newCard, {
+        title: '',
+        content: '',
+        type: '',
+        images: '',
+        location: { longitude: 0, latitude: 0, address: '' },
+        people_required: null,
+        gender_required: 'any',
+        people_count: 0,
+        tags: [],
+        is_private: false,
+        date: new Date().toISOString()
+    })
+    tagList.value = []
 }
 
 const handleSave = async (key: string) => {
-  if (!formRef.value) return
-  
-  try {
-    await formRef.value.validate()
-    submitting.value = true
-    
-    // 模拟API调用
-    setTimeout(async () => {
-      if (editingCard.value) {
-        // 编辑模式
-        const index = cards.value.findIndex(c => c.id === editingCard.value!.id)
-        if (index > -1) {
-          Object.assign(cards.value[index], {
-            title: newCard.title,
-            content: newCard.content,
-            type: newCard.type,
-            location: newCard.location,
-            people_required: newCard.people_required,
-            gender_required: newCard.gender_required,
-            tags: newCard.tags,
-            is_private: newCard.is_private,
-            status: key === 'draft' ? 'draft' : 'active',
-            date: new Date().toISOString()
-          })
-          message.success(key === 'draft' ? '已保存为草稿' : '卡片更新成功')
-        }
-      } else {
-        // 创建模式
-        const newCardData: SocialCard = {
-          user_id: 1,
-          title: newCard.title,
-          content: newCard.content,
-          type: newCard.type,
-          images: '',
-          location: newCard.location,
-          people_required: newCard.people_required,
-          people_count: 0,
-          gender_required: newCard.gender_required,
-          tags: newCard.tags,
-          is_private: newCard.is_private,
-          status: key === 'draft' ? 'draft' : 'active',
-          date: new Date().toISOString(),
-        }
+    if (!formRef.value) return
 
-        console.log(newCardData)
+    try {
+        await formRef.value.validate()
+        submitting.value = true
 
-        const token = authStore.token
-        if (!token) {
-          message.error('请先登录')
-          submitting.value = false
-          router.push('/login')
-          return
-        }
+        // 模拟API调用
+        setTimeout(async () => {
+            if (editingCard.value) {
+                // 编辑模式
+                const index = cards.value.findIndex(c => c.id === editingCard.value!.id)
+                if (index > -1) {
+                    Object.assign(cards.value[index], {
+                        title: newCard.title,
+                        content: newCard.content,
+                        type: newCard.type,
+                        location: newCard.location,
+                        people_required: newCard.people_required,
+                        gender_required: newCard.gender_required,
+                        tags: newCard.tags,
+                        is_private: newCard.is_private,
+                        status: key === 'draft' ? 'draft' : 'active',
+                        date: new Date().toISOString()
+                    })
 
-        const response = await createSocialCard(token, newCardData) as unknown as ApiResponse
-        if (response.code !== 200) {
-          message.error(response.message || '创建卡片失败，请稍后再试')
-          submitting.value = false
-          return
-        }
-        message.success('卡片创建成功')
-        console.log('New card created:', response.data)
-        console.log(response.message)
-        cards.value.unshift(newCardData)
-      }
-      
-      closeCreateModal()
-      submitting.value = false
-    }, 1000)
-    
-  } catch (error) {
-    message.error('请检查表单输入')
-    submitting.value = false
-  }
+
+
+                    message.success(key === 'draft' ? '已保存为草稿' : '卡片更新成功')
+
+
+                }
+            } else {
+                // 创建模式
+                const newCardData: SocialCard = {
+                    user_id: 1,
+                    title: newCard.title,
+                    content: newCard.content,
+                    type: newCard.type,
+                    images: '',
+                    location: newCard.location,
+                    people_required: newCard.people_required,
+                    people_count: 0,
+                    gender_required: newCard.gender_required,
+                    tags: newCard.tags,
+                    is_private: newCard.is_private,
+                    status: key === 'draft' ? 'draft' : 'active',
+                    date: new Date().toISOString(),
+                }
+
+                console.log(newCardData)
+
+                const token = authStore.token
+                if (!token) {
+                    message.error('请先登录')
+                    submitting.value = false
+                    router.push('/login')
+                    return
+                }
+
+                const response = await createSocialCard(token, newCardData) as unknown as ApiResponse
+                if (response.code !== 200) {
+                    message.error(response.message || '创建卡片失败，请稍后再试')
+                    submitting.value = false
+                    return
+                }
+                message.success('卡片创建成功')
+                console.log('New card created:', response.data)
+                console.log(response.message)
+                cards.value.unshift(newCardData)
+            }
+
+            closeCreateModal()
+            submitting.value = false
+        }, 1000)
+
+    } catch (error) {
+        message.error('请检查表单输入')
+        submitting.value = false
+    }
 }
 
 onMounted(async () => {
-  try {
-    const response = await getSocialCards({
-      user_id: authStore.user?.id,
-      token: authStore.token ?? ''
-    }) as unknown as ApiResponse
-    
-    if (response.code !== 200) {
-      message.error(response.message || '获取卡片列表失败，请稍后再试')
-      return
-    }
+    try {
+        const response = await getSocialCards({
+            user_id: authStore.user?.id,
+            token: authStore.token ?? ''
+        }) as unknown as ApiResponse
 
-    // 确保数据格式正确
-    cards.value = response.data.map((card: any) => ({
-      id: card.id,
-      user_id: card.user_id,
-      title: card.title,
-      content: card.content,
-      type: card.type,
-      images: card.images || '',
-      gender_required: card.gender_required,
-      people_required: card.people_required,
-      people_count: card.people_count,
-      location: card.location,
-      is_private: card.is_private,
-      status: card.status,
-      date: card.date,
-      tags: card.tags
-    }))
-    
-    console.log('Cards loaded successfully:', cards.value)
-  } catch (error) {
-    console.error('Error fetching cards:', error)
-    message.error('加载卡片列表时发生错误')
-  }
+        if (response.code !== 200) {
+            message.error(response.message || '获取卡片列表失败，请稍后再试')
+            return
+        }
+
+        cards.value = response.data.map((card: any) => ({
+            id: card.id,
+            user_id: card.user_id,
+            title: card.title,
+            content: card.content,
+            type: card.type,
+            images: card.images || '',
+            gender_required: card.gender_required,
+            people_required: card.people_required,
+            people_count: card.people_count,
+            location: card.location,
+            is_private: card.is_private,
+            status: card.status,
+            date: card.date,
+            tags: card.tags
+        }))
+
+        console.log('Cards loaded successfully:', cards.value)
+    } catch (error) {
+        console.error('Error fetching cards:', error)
+        message.error('加载卡片列表时发生错误')
+    }
 });
 </script>
