@@ -188,7 +188,15 @@
         </n-form-item>
 
         <n-form-item label="标签">
-          <n-input v-model:value="newCard.tags" placeholder="用逗号分隔，如：运动,健身,羽毛球" />
+          <n-dynamic-tags
+            v-model:value="tagList"
+            :max="5"
+            :input-props="{
+              placeholder: '输入标签按回车添加'
+            }"
+            @update:value="handleTagsUpdate"
+          />
+          <span style="color: #999; font-size: 12px;">最多添加5个标签，按回车确认</span>
         </n-form-item>
 
         <n-form-item label="隐私设置">
@@ -254,6 +262,14 @@ const pageSize = ref(12)
 
 const cards = ref<SocialCard[]>([])
 
+// 标签列表
+const tagList = ref<string[]>([])
+
+// 处理标签更新
+const handleTagsUpdate = (tags: string[]) => {
+  tagList.value = tags
+  newCard.tags = tags
+}
 
 const newCard = reactive<SocialCard>({
     user_id: 1,
@@ -268,7 +284,7 @@ const newCard = reactive<SocialCard>({
     is_private: false,
     status: 'draft',
     date: new Date().toISOString(),
-    tags: '',
+    tags: [],
     id: 0
 })
 
@@ -440,9 +456,10 @@ const editCard = (card: SocialCard) => {
     location: card.location,
     people_required: card.people_required,
     gender_required: card.gender_required,
-    tags: card.tags || '',
+    tags: card.tags || [],
     is_private: card.is_private
   })
+  tagList.value = card.tags || []
   showCreateModal.value = true
 }
 
@@ -467,10 +484,11 @@ const closeCreateModal = () => {
     people_required: null,
     gender_required: 'any',
     people_count: 0,
-    tags: '',
+    tags: [],
     is_private: false,
     date: new Date().toISOString()
   })
+  tagList.value = []
 }
 
 const handleSave = async (key: string) => {

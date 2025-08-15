@@ -13,6 +13,6 @@ export interface SocialCard {
   location: string;
   status: 'draft' | 'active' | 'closed' | 'deleted' | 'completed';
   date: string;
-  tags?: string;
+  tags?: string[];
 }
                                                

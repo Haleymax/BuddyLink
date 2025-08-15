@@ -118,28 +118,12 @@
       <div class="card-footer">
         <div class="card-stats">
           <div class="stat-item">
-            <n-icon size="16" color="#1890ff">
-              <svg viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z" />
-              </svg>
-            </n-icon>
-            <span>{{ card.views_count || 0 }} 浏览</span>
-          </div>
-          <div class="stat-item">
-            <n-icon size="16" color="#f5222d">
-              <svg viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5 2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
-              </svg>
-            </n-icon>
-            <span>{{ card.interested_count || 0 }} 感兴趣</span>
-          </div>
-          <div class="stat-item">
             <n-icon size="16" color="#52c41a">
               <svg viewBox="0 0 24 24">
-                <path fill="currentColor" d="M9,22A1,1 0 0,1 8,21V18H4A2,2 0 0,1 2,16V4C2,2.89 2.9,2 4,2H20A2,2 0 0,1 22,4V16A2,2 0 0,1 20,18H13.9L10.2,21.71C10,21.9 9.75,22 9.5,22V22H9Z" />
+                <path fill="currentColor" d="M16,13C15.71,13 15.38,13 15.03,13.05C16.19,13.89 17,15 17,16.5V19H23V16.5C23,14.17 18.33,13 16,13M8,13C5.67,13 1,14.17 1,16.5V19H15V16.5C15,14.17 10.33,13 8,13M8,11A3,3 0 0,0 11,8A3,3 0 0,0 8,5A3,3 0 0,0 5,8A3,3 0 0,0 8,11M16,11A3,3 0 0,0 19,8A3,3 0 0,0 16,5A3,3 0 0,0 13,8A3,3 0 0,0 16,11Z" />
               </svg>
             </n-icon>
-            <span>{{ card.applications_count || 0 }} 申请</span>
+            <span>{{ card.people_count }} / {{ card.people_required || '不限' }} 人</span>
           </div>
         </div>
         <div class="card-actions">
@@ -207,9 +191,9 @@ const truncateText = (text: string, maxLength: number): string => {
   return text.slice(0, maxLength) + '...'
 }
 
-const parseTags = (tags: string): string[] => {
+const parseTags = (tags: string[] | undefined): string[] => {
   if (!tags) return []
-  return tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+  return tags
 }
 
 const getStatusType = (status: string) => {
@@ -217,6 +201,9 @@ const getStatusType = (status: string) => {
     case 'active': return 'success'
     case 'expired': return 'warning'
     case 'completed': return 'info'
+    case 'closed': return 'default'
+    case 'draft': return 'default'
+    case 'deleted': return 'error'
     default: return 'default'
   }
 }
@@ -226,6 +213,9 @@ const getStatusText = (status: string) => {
     case 'active': return '进行中'
     case 'expired': return '已过期'
     case 'completed': return '已完成'
+    case 'closed': return '已关闭'
+    case 'draft': return '草稿'
+    case 'deleted': return '已删除'
     default: return '未知'
   }
 }
