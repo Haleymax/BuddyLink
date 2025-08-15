@@ -319,3 +319,164 @@
     color: #999;
   }
 }
+
+/* 工具栏样式 */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e1e5e9;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-count {
+  color: #888;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 位置选择模态框样式 */
+.social-cards-container .n-modal-container .n-modal {
+  margin: 2vh auto;
+}
+
+.social-cards-container .n-modal .n-card {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.social-cards-container .n-modal .n-card .n-card__content {
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* 确保地图组件在模态框中正确显示 */
+.social-cards-container .location-selector-modal {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.social-cards-container .location-selector-modal .map-container {
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 模态框内容区域的优化 */
+.social-cards-container .n-modal .location-selector-modal {
+  overflow: hidden;
+}
+
+/* 确保地图组件的各部分正确布局 */
+.social-cards-container .location-selector-modal .main-card {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.social-cards-container .location-selector-modal .main-card .n-card__content {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+/* 响应式设计增强 */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+    padding: 16px;
+  }
+  
+  .toolbar-left,
+  .toolbar-right {
+    justify-content: center;
+  }
+  
+  .toolbar-left .n-space {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* 组件内联样式提取 */
+.social-cards-container .search-input {
+  width: 280px;
+}
+
+.social-cards-container .filter-select {
+  width: 120px;
+}
+
+.social-cards-container .sort-select {
+  width: 120px;
+}
+
+.social-cards-container .datetime-picker {
+  width: 100%;
+}
+
+.social-cards-container .location-selected-card {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+}
+
+.social-cards-container .location-selected-text {
+  font-weight: 600;
+  color: #52c41a;
+}
+
+.social-cards-container .location-help-text {
+  font-size: 12px;
+  margin-top: 8px;
+  display: block;
+}
+
+.social-cards-container .tags-help-text {
+  color: #999;
+  font-size: 12px;
+}
+
+.social-cards-container .privacy-help-text {
+  margin-left: 8px;
+}
+
+.social-cards-container .modal-header-space {
+  width: 100%;
+}
+
+.social-cards-container .modal-header-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 搜索按钮间距调整 */
+.social-cards-container .search-buttons {
+  margin-top: 12px;
+}
+
+.social-cards-container .search-button,
+.social-cards-container .clear-button {
+  flex: 1;
+}

@@ -43,19 +43,25 @@ export const createSocialCard = (token:string, data: SocialCard) => {
 };
 
 // 更新社交卡片
-export const updateSocialCard = (id: number, data: Partial<SocialCard>) => {
+export const updateSocialCard = (token:string, id: number, data: Partial<SocialCard>) => {
     return request({
-        url: `/api/v1/social-cards/${id}`,
+        url: `/api/v1/social_card/card/${id}`,
         method: 'put',
+        headers: {
+            "Authorization": token,
+        },
         data
     });
 };
 
 // 删除社交卡片
-export const deleteSocialCard = (id: number) => {
+export const deleteSocialCard = (token:string, id: number) => {
     return request({
-        url: `/api/v1/social-cards/${id}`,
-        method: 'delete'
+        url: `/api/v1/social_card/card/${id}`,
+        method: 'delete',
+        headers: {
+            "Authorization": token,
+        }
     });
 };
 

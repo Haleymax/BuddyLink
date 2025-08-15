@@ -1,5 +1,7 @@
+import type { Location } from './location'
 
 export interface SocialCard {
+  value: any;
   id?: number;
   user_id: number;
   content: string;
@@ -10,9 +12,9 @@ export interface SocialCard {
   people_required: number | null;
   people_count: number;
   is_private: boolean;
-  location: string;
+  location: Location;
   status: 'draft' | 'active' | 'closed' | 'deleted' | 'completed';
   date: string;
-  tags?: string;
+  tags?: string[];
 }
                                                
