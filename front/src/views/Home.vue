@@ -110,6 +110,7 @@ import Profile from './home/Profile.vue';
 import Settings from './home/Settings.vue';
 import Messages from './home/Messages.vue';
 import SocialCards from './home/SocialCards.vue';
+import FindBuddy from './home/FindBuddy.vue';
 import { useFetchUserInfo } from '../common/get_user_info';
 import router from '../router';
 
@@ -143,6 +144,18 @@ const menuOptions: MenuOption[] = [
         h('path', { 
           fill: 'currentColor', 
           d: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z' 
+        })
+      ])
+    ])
+  },
+  {
+    label: '寻找搭子',
+    key: 'find-buddy',
+    icon: () => h('div', { class: 'menu-icon' }, [
+      h('svg', { viewBox: '0 0 24 24' }, [
+        h('path', { 
+          fill: 'currentColor', 
+          d: 'M9,11H7v2h2V11M13,11h-2v2h2V11M17,11h-2v2h2V11M19,4h-1V2h-2v2H8V2H6v2H5A2,2 0 0,0 3,6V20a2,2 0 0,0 2,2H19a2,2 0 0,0 2,-2V6A2,2 0 0,0 19,4M19,20H5V9H19V20Z' 
         })
       ])
     ])
@@ -211,6 +224,8 @@ const currentComponent = computed(() => {
       return Dashboard;
     case 'social-cards':
       return SocialCards;
+    case 'find-buddy':
+      return FindBuddy;
     case 'messages':
       return Messages;
     case 'profile':
@@ -227,6 +242,7 @@ const getCurrentPageTitle = () => {
   const pageMap: Record<string, string> = {
     dashboard: '仪表盘',
     'social-cards': '社交卡片',
+    'find-buddy': '寻找搭子',
     messages: '消息中心',
     profile: '个人资料',
     settings: '设置'
