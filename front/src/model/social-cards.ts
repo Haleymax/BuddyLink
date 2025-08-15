@@ -1,6 +1,7 @@
 import type { Location } from './location'
 
 export interface SocialCard {
+  value: any;
   id?: number;
   user_id: number;
   content: string;

@@ -258,7 +258,7 @@ import type { Location } from '../../model/location'
 import BuddyCard from '../../components/BuddyCard.vue'
 import MapComponent from '../../components/MapComponent.vue'
 import '../../styles/SocialCards.css'
-import { createSocialCard, getSocialCards } from '../../api/social-cards'
+import { createSocialCard, deleteSocialCard, getSocialCards, updateSocialCard } from '../../api/social-cards'
 import type { ApiResponse } from '../../api/apiResponse'
 import { useAuthStore } from '../../stores/auth.store'
 import router from '../../router'
@@ -526,11 +526,17 @@ const editCard = (card: SocialCard) => {
     showCreateModal.value = true
 }
 
-const deleteCard = (card: SocialCard) => {
+const deleteCard = async (card: SocialCard) => {
     const index = cards.value.findIndex(c => c.id === card.id)
     if (index > -1) {
         cards.value.splice(index, 1)
-        message.success('卡片已删除')
+
+        const response = await deleteSocialCard(authStore.token ?? '', card.id as number) as unknown as ApiResponse
+        if (response.code === 200) {
+            message.success('卡片已删除')
+        } else {
+            message.error('删除失败，请重试')
+        }
     }
 }
 
@@ -581,8 +587,12 @@ const handleSave = async (key: string) => {
                         date: new Date().toISOString()
                     })
 
-
-
+                    const response = await updateSocialCard(authStore.token ?? '', cards.value[index].id!, cards.value[index]) as unknown as ApiResponse
+                    if (response.code !== 200) {
+                        message.error(response.message || '更新卡片失败，请稍后再试')
+                        submitting.value = false
+                        return
+                    }
                     message.success(key === 'draft' ? '已保存为草稿' : '卡片更新成功')
 
 

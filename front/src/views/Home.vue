@@ -109,7 +109,6 @@ import Dashboard from './home/Dashboard.vue';
 import Profile from './home/Profile.vue';
 import Settings from './home/Settings.vue';
 import Messages from './home/Messages.vue';
-import MapView from './home/MapView.vue';
 import SocialCards from './home/SocialCards.vue';
 import { useFetchUserInfo } from '../common/get_user_info';
 import router from '../router';
@@ -156,18 +155,6 @@ const menuOptions: MenuOption[] = [
         h('path', { 
           fill: 'currentColor', 
           d: 'M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z' 
-        })
-      ])
-    ])
-  },
-  {
-    label: '地图定位',
-    key: 'map',
-    icon: () => h('div', { class: 'menu-icon' }, [
-      h('svg', { viewBox: '0 0 24 24' }, [
-        h('path', { 
-          fill: 'currentColor', 
-          d: 'M12,2C15.31,2 18,4.66 18,7.95C18,12.41 12,19 12,19S6,12.41 6,7.95C6,4.66 8.69,2 12,2M12,6A2,2 0 0,0 10,8A2,2 0 0,0 12,10A2,2 0 0,0 14,8A2,2 0 0,0 12,6Z' 
         })
       ])
     ])
@@ -226,8 +213,6 @@ const currentComponent = computed(() => {
       return SocialCards;
     case 'messages':
       return Messages;
-    case 'map':
-      return MapView;
     case 'profile':
       return Profile;
     case 'settings':
@@ -243,7 +228,6 @@ const getCurrentPageTitle = () => {
     dashboard: '仪表盘',
     'social-cards': '社交卡片',
     messages: '消息中心',
-    map: '地图定位',
     profile: '个人资料',
     settings: '设置'
   };
