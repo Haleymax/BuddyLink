@@ -28,7 +28,7 @@
             v-model:value="searchKeyword" 
             placeholder="搜索我的卡片..."
             clearable
-            style="width: 280px"
+            class="search-input"
           >
             <template #prefix>
               <n-icon>
@@ -42,13 +42,13 @@
             v-model:value="filterStatus" 
             :options="statusOptions" 
             placeholder="状态筛选"
-            style="width: 120px"
+            class="filter-select"
           />
           <n-select 
             v-model:value="sortBy" 
             :options="sortOptions" 
             placeholder="排序方式"
-            style="width: 120px"
+            class="sort-select"
           />
         </n-space>
       </div>
@@ -80,8 +80,8 @@
         v-for="card in paginatedCards"
         :key="card.id"
         :card="card"
-        :selected="selectedCards.includes(card.id)"
-        @select="(checked) => toggleCardSelection(card.id, checked)"
+        :selected="card.id ? selectedCards.includes(card.id) : false"
+        @select="(checked) => card.id && toggleCardSelection(card.id, checked)"
         @click="handleCardClick(card)"
         @edit="editCard(card)"
         @delete="deleteCard(card)"
@@ -121,7 +121,7 @@
     </div>
 
     <!-- 创建/编辑卡片模态框 -->
-    <n-modal v-model:show="showCreateModal" preset="dialog" :title="editingCard ? '编辑搭子卡片' : '发布搭子需求'">
+    <n-modal v-model:show="showCreateModal" preset="dialog" :title="editingCard ? '编辑搭子卡片' : '发布搭子需求'" style="width: 90%; max-width: 800px;">
       <template #header>
         <div>{{ editingCard ? '编辑搭子卡片' : '发布搭子需求' }}</div>
       </template>
@@ -164,15 +164,72 @@
             :time-picker-props="{
               actions: ['clear', 'now', 'confirm'],
               isHourDisabled: (hour: number) => hour < new Date().getHours() && isToday(newCard.date ? Date.parse(newCard.date) : null),
-              isMinuteDisabled: (minute: number, hour: number) => hour === new Date().getHours() && minute < new Date().getMinutes() && isToday(newCard.activity_date)
+              isMinuteDisabled: (minute: number, hour: number) => hour === new Date().getHours() && minute < new Date().getMinutes() && isToday(newCard.date ? Date.parse(newCard.date) : null)
             }"
             clearable
-            style="width: 100%"
+            class="datetime-picker"
           />
         </n-form-item>
 
         <n-form-item label="活动地点" path="location">
-          <n-input v-model:value="newCard.location" placeholder="活动地点" />
+          <n-space vertical size="medium">
+            <!-- 位置信息显示 -->
+            <div v-if="selectedLocation">
+              <n-card size="small" class="location-selected-card">
+                <template #header>
+                  <n-space align="center">
+                    <n-icon color="#52c41a">
+                      <svg viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12,2A7,7 0 0,1 19,9C19,14.25 12,22 12,22C12,22 5,14.25 5,9A7,7 0 0,1 12,2M12,4A5,5 0 0,0 7,9C7,10 7,12 12,18.71C17,12 17,10 17,9A5,5 0 0,0 12,4M12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5Z"/>
+                      </svg>
+                    </n-icon>
+                    <span class="location-selected-text">已选择位置</span>
+                  </n-space>
+                </template>
+                <n-descriptions :column="1" size="small">
+                  <n-descriptions-item label="地址">
+                    {{ selectedLocation.address || '未知地址' }}
+                  </n-descriptions-item>
+                  <n-descriptions-item label="坐标">
+                    {{ selectedLocation.longitude.toFixed(6) }}, {{ selectedLocation.latitude.toFixed(6) }}
+                  </n-descriptions-item>
+                </n-descriptions>
+                <template #action>
+                  <n-space>
+                    <n-button size="small" @click="showLocationSelector = true" type="primary" ghost>
+                      重新选择
+                    </n-button>
+                    <n-button size="small" @click="clearSelectedLocation" type="error" ghost>
+                      清除位置
+                    </n-button>
+                  </n-space>
+                </template>
+              </n-card>
+            </div>
+            
+            <!-- 位置选择按钮 -->
+            <div v-else>
+              <n-button 
+                type="primary" 
+                @click="showLocationSelector = true"
+                block
+                size="large"
+                dashed
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M12,2A7,7 0 0,1 19,9C19,14.25 12,22 12,22C12,22 5,14.25 5,9A7,7 0 0,1 12,2M12,4A5,5 0 0,0 7,9C7,10 7,12 12,18.71C17,12 17,10 17,9A5,5 0 0,0 12,4M12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5Z"/>
+                    </svg>
+                  </n-icon>
+                </template>
+                点击选择活动地点
+              </n-button>
+              <n-text depth="3" class="location-help-text">
+                支持地图选点、GPS定位、地址搜索
+              </n-text>
+            </div>
+          </n-space>
         </n-form-item>
 
         <n-form-item label="需要人数">
@@ -196,12 +253,12 @@
             }"
             @update:value="handleTagsUpdate"
           />
-          <span style="color: #999; font-size: 12px;">最多添加5个标签，按回车确认</span>
+          <span class="tags-help-text">最多添加5个标签，按回车确认</span>
         </n-form-item>
 
         <n-form-item label="隐私设置">
           <n-switch v-model:value="newCard.is_private" />
-          <span style="margin-left: 8px;">{{ newCard.is_private ? '仅自己可见位置' : '公开位置信息' }}</span>
+          <span class="privacy-help-text">{{ newCard.is_private ? '仅自己可见位置' : '公开位置信息' }}</span>
         </n-form-item>
       </n-form>
       <template #action>
@@ -215,6 +272,48 @@
         </n-space>
       </template>
     </n-modal>
+
+    <!-- 位置选择模态框 -->
+    <n-modal 
+      v-model:show="showLocationSelector" 
+      preset="card" 
+      title="选择活动地点" 
+      style="width: 80vw; max-width: 1000px; height: 90vh;"
+      :show-icon="false"
+      :closable="true"
+      :mask-closable="false"
+    >
+      <template #header>
+        <n-space align="center" justify="space-between" class="modal-header-space">
+          <n-space align="center">
+            <n-icon color="#1890ff">
+              <svg viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12,2A7,7 0 0,1 19,9C19,14.25 12,22 12,22C12,22 5,14.25 5,9A7,7 0 0,1 12,2M12,4A5,5 0 0,0 7,9C7,10 7,12 12,18.71C17,12 17,10 17,9A5,5 0 0,0 12,4M12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5Z"/>
+              </svg>
+            </n-icon>
+            <span class="modal-header-title">选择活动地点</span>
+          </n-space>
+          <n-tag type="info" size="small">
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/>
+                </svg>
+              </n-icon>
+            </template>
+            点击地图中"确认使用此位置"按钮完成选择
+          </n-tag>
+        </n-space>
+      </template>
+      
+      <div style="height: calc(90vh - 80px); width: 100%; padding: 16px;" class="location-selector-modal">
+        <MapComponent 
+          @location-selected="handleLocationSelected"
+          :initial-location="selectedLocation"
+          :is-modal="true"
+        />
+      </div>
+    </n-modal>
   </div>
 </template>
 
@@ -222,7 +321,9 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useMessage, type FormInst, type FormRules, type DropdownOption } from 'naive-ui'
 import { type SocialCard } from '../../model/social-cards'
+import type { Location } from '../../model/location'
 import BuddyCard from '../../components/BuddyCard.vue'
+import MapComponent from '../../components/MapComponent.vue'
 import '../../styles/SocialCards.css'
 import { createSocialCard, getSocialCards } from '../../api/social-cards'
 import type { ApiResponse } from '../../api/apiResponse'
@@ -265,10 +366,29 @@ const cards = ref<SocialCard[]>([])
 // 标签列表
 const tagList = ref<string[]>([])
 
+// 位置选择相关状态
+const selectedLocation = ref<Location | null>(null)
+const showLocationSelector = ref(false)
+
 // 处理标签更新
 const handleTagsUpdate = (tags: string[]) => {
   tagList.value = tags
   newCard.tags = tags
+}
+
+// 处理位置选择
+const handleLocationSelected = (location: Location) => {
+  selectedLocation.value = location
+  newCard.location = location
+  showLocationSelector.value = false  // 选择位置后自动关闭模态框
+  message.success('位置选择成功！')
+}
+
+// 清除选择的位置
+const clearSelectedLocation = () => {
+  selectedLocation.value = null
+  newCard.location = { longitude: 0, latitude: 0, address: '' }
+  message.info('已清除位置信息')
 }
 
 const newCard = reactive<SocialCard>({
@@ -280,7 +400,7 @@ const newCard = reactive<SocialCard>({
     gender_required: 'any',
     people_required: null,
     people_count: 0,
-    location: '',
+    location: { longitude: 0, latitude: 0, address: '' },
     is_private: false,
     status: 'draft',
     date: new Date().toISOString(),
@@ -300,7 +420,16 @@ const formRules: FormRules = {
     { required: true, message: '请选择活动类型', trigger: 'change' }
   ],
   location: [
-    { required: true, message: '请输入活动地点', trigger: 'blur' }
+    { 
+      required: true, 
+      validator: (_rule: any, value: Location) => {
+        if (!value || !value.address) {
+          return new Error('请选择活动地点')
+        }
+        return true
+      },
+      trigger: 'change' 
+    }
   ]
 }
 
@@ -460,6 +589,7 @@ const editCard = (card: SocialCard) => {
     is_private: card.is_private
   })
   tagList.value = card.tags || []
+  selectedLocation.value = card.location
   showCreateModal.value = true
 }
 
@@ -474,13 +604,14 @@ const deleteCard = (card: SocialCard) => {
 const closeCreateModal = () => {
   showCreateModal.value = false
   editingCard.value = null
+  selectedLocation.value = null
   // 重置表单
   Object.assign(newCard, {
     title: '',
     content: '',
     type: '',
     images: '',
-    location: '',
+    location: { longitude: 0, latitude: 0, address: '' },
     people_required: null,
     gender_required: 'any',
     people_count: 0,
