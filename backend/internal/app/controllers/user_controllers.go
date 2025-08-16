@@ -315,3 +315,16 @@ func (uc *UserController) GetUser(c *gin.Context) {
 	})
 
 }
+
+func (uc *UserController) Logout(c *gin.Context) {
+	id, ok := c.Params.Get("id")
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "logout id not found",
+			"data":    nil,
+		})
+		return
+	}
+
+}
