@@ -18,6 +18,7 @@ type UserService interface {
 	UpdateUser(user models.User) error
 	RegisterUser(user models.User) error
 	LoginUser(user models.User) (string, error)
+	LogoutUser(token string) (string, error)
 	GetUserInfo(id uint64) (models.User, error)
 }
 
@@ -143,6 +144,18 @@ func (u *UserServiceImpl) LoginUser(user models.User) (string, error) {
 		return "", err
 	}
 	log.Println("successful generated token")
+	return token, nil
+}
+
+func (u *UserServiceImpl) LogoutUser(token string) (string, error) {
+	jwtUtil := jwtutil.NewJWTUtil("secret")
+	expirationTime := time.Now().Add(1 * time.Minute)
+	token, err := jwtUtil.RefreshToken(token, expirationTime)
+	if err != nil {
+		log.Println("failed to refresh token", err.Error())
+		return "", err
+	}
+	log.Println("successful refreshed token")
 	return token, nil
 }
 

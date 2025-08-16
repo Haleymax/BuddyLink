@@ -23,11 +23,6 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/Home.vue'),
     meta: { requiresAuth: true }
   },
-  {
-    path: '/test/map',
-    name: 'MapTest',
-    component: () => import('@/test/MapTest.vue')
-  }
 ]
 
 // 创建路由实例

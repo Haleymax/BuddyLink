@@ -104,7 +104,6 @@ import type { User } from '../stores/auth.store';
 import '../styles/Home.css';
 import { useAuthStore } from '../stores/auth.store'
 
-// 导入业务组件
 import Dashboard from './home/Dashboard.vue';
 import Profile from './home/Profile.vue';
 import Settings from './home/Settings.vue';
@@ -266,7 +265,8 @@ const handleUserMenuSelect = (key: string) => {
       break;
     case 'logout':
       message.success('退出登录成功');
-      // 这里添加退出登录的逻辑
+      authStore.clearAuth();
+      router.push('/login');
       break;
   }
 };
