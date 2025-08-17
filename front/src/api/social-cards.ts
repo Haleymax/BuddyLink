@@ -12,14 +12,19 @@ export const getSocialCards = (params?: {
     user_id?: number;
     token:string;
 }) => {
+    let url = '/api/v1/social_card/card/';
+    if (params?.user_id) {
+        url = url + "user/" +params?.user_id
+    }
     return request({
-        url: '/api/v1/social_card/card/user/'+params?.user_id,
+        url: url,
         method: 'get',
         headers: {
             "Authorization": params?.token,
         },
     });
 };
+
 
 // 获取单个社交卡片详情
 export const getSocialCard = (id: number) => {
