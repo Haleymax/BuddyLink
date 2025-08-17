@@ -14,6 +14,7 @@ type SocialCardService interface {
 	Delete(card models.SocialCard) error
 	DeleteByID(ID uint64) error
 	DeleteByUserId(userID uint64) error
+	FindAllCards() ([]map[string]interface{}, error)
 }
 
 type socialCardService struct {
@@ -122,4 +123,32 @@ func (s *socialCardService) DeleteByUserId(userID uint64) error {
 		return fmt.Errorf("failed to delete cards for user ID %d: %w", userID, err)
 	}
 	return nil
+}
+
+func (s *socialCardService) FindAllCards() ([]map[string]interface{}, error) {
+	cards, err := s.SocialRepo.FindAll()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to find all cards: %w", err)
+	}
+
+	var cardsInfo []map[string]interface{}
+	for _, card := range cards {
+		cardsInfo = append(cardsInfo, map[string]interface{}{
+			"id":              card.ID,
+			"user_id":         card.UserID,
+			"content":         card.Content,
+			"title":           card.Title,
+			"type":            card.Type,
+			"images":          card.Images,
+			"gender_required": card.GenderRequired,
+			"people_count":    card.PeopleCount,
+			"is_private":      card.IsPrivate,
+			"location":        card.Location,
+			"status":          card.Status,
+			"date":            card.Date,
+			"tags":            card.Tags,
+		})
+	}
+	return cardsInfo, nil
 }

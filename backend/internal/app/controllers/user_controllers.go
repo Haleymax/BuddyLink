@@ -322,7 +322,7 @@ func (uc *UserController) Logout(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    http.StatusBadRequest,
 			"message": "logout id not found",
-			"data":    nil,
+			"data":    id,
 		})
 		return
 	}

@@ -12,6 +12,7 @@ func SetupSocialCardRouters(api *gin.RouterGroup, controller controllers.SocialC
 	{
 		socialCard.POST("/card", controller.AddCard)
 		socialCard.PUT("/card/:card_id", controller.UpdateCard)
+		socialCard.GET("/card", controller.GetAllCard)
 		socialCard.GET("/card/:card_id", controller.FindByCardId)
 		socialCard.GET("/card/user/:user_id", controller.FindByUserId)
 		socialCard.DELETE("/card", controller.DeleteCard)
