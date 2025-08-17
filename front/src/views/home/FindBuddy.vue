@@ -211,8 +211,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useMessage } from 'naive-ui'
 import type { SocialCard } from '../../model/social-cards'
 import '../../styles/FindBuddy.css'
+import { getSocialCards } from '../../api/social-cards'
+import type { ApiResponse } from '../../api/apiResponse'
+import { useAuthStore } from '../../stores/auth.store'
 
 const message = useMessage()
+const authStore = useAuthStore()
 
 // 响应式数据
 const selectedDate = ref<number>(Date.now())
@@ -363,185 +367,33 @@ const goToCreateActivity = () => {
   message.info('即将跳转到创建活动页面')
 }
 
-// 示例活动数据
-const mockActivities: SocialCard[] = [
-  {
-    id: 1,
-    title: '周末篮球约战',
-    content: '寻找篮球爱好者一起打球，技术不限，重在参与和锻炼身体！',
-    type: '运动健身',
-    date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 明天
-    location: {
-      latitude: 39.9042,
-      longitude: 116.4074,
-      address: '朝阳公园篮球场'
-    },
-    people_count: 3,
-    people_required: 6,
-    gender_required: 'any',
-    status: 'active',
-    is_private: false,
-    tags: ['篮球', '运动', '朋友'],
-    user_id: 1,
-    images: '',
-    value: null
-  },
-  {
-    id: 2,
-    title: '咖啡馆读书分享',
-    content: '一起在安静的咖啡馆读书，分享读书心得，欢迎爱书人士加入！',
-    type: '学习交流',
-    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 后天
-    location: {
-      latitude: 39.9042,
-      longitude: 116.4074,
-      address: '三里屯星巴克'
-    },
-    people_count: 2,
-    people_required: 4,
-    gender_required: 'any',
-    status: 'active',
-    is_private: false,
-    tags: ['读书', '咖啡', '分享'],
-    user_id: 2,
-    images: '',
-    value: null
-  },
-  {
-    id: 3,
-    title: '周末爬香山',
-    content: '天气不错，约几个人一起爬香山看红叶，拍照打卡，享受自然风光！',
-    type: '旅行出游',
-    date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3天后
-    location: {
-      latitude: 39.9959,
-      longitude: 116.1873,
-      address: '香山公园'
-    },
-    people_count: 1,
-    people_required: 5,
-    gender_required: 'any',
-    status: 'active',
-    is_private: false,
-    tags: ['爬山', '摄影', '自然'],
-    user_id: 3,
-    images: '',
-    value: null
-  },
-  {
-    id: 4,
-    title: '密室逃脱挑战',
-    content: '新开的密室逃脱主题很有趣，需要团队配合，寻找喜欢解谜的小伙伴！',
-    type: '娱乐休闲',
-    date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 明天
-    location: {
-      latitude: 39.9042,
-      longitude: 116.4074,
-      address: '王府井密室逃脱馆'
-    },
-    people_count: 2,
-    people_required: 4,
-    gender_required: 'any',
-    status: 'active',
-    is_private: false,
-    tags: ['密室逃脱', '解谜', '团队'],
-    user_id: 4,
-    images: '',
-    value: null
-  },
-  {
-    id: 5,
-    title: '日式料理制作课',
-    content: '学习制作正宗日式料理，从寿司到拉面，一起动手制作美食！',
-    type: '美食探店',
-    date: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(), // 4天后
-    location: {
-      latitude: 39.9042,
-      longitude: 116.4074,
-      address: '日料烹饪教室'
-    },
-    people_count: 3,
-    people_required: 6,
-    gender_required: 'any',
-    status: 'active',
-    is_private: false,
-    tags: ['日料', '烹饪', '美食'],
-    user_id: 5,
-    images: '',
-    value: null
-  },
-  {
-    id: 6,
-    title: '摄影作品展览',
-    content: '参观当代摄影艺术展，一起欣赏和讨论摄影作品，提升艺术鉴赏力！',
-    type: '文化艺术',
-    date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5天后
-    location: {
-      latitude: 39.9042,
-      longitude: 116.4074,
-      address: '中国美术馆'
-    },
-    people_count: 1,
-    people_required: 3,
-    gender_required: 'any',
-    status: 'active',
-    is_private: false,
-    tags: ['摄影', '艺术', '展览'],
-    user_id: 6,
-    images: '',
-    value: null
-  },
-  {
-    id: 7,
-    title: '夜跑健身团',
-    content: '每周三次夜跑，强身健体，结识跑友，一起坚持运动，保持健康生活！',
-    type: '运动健身',
-    date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(), // 6天后
-    location: {
-      latitude: 39.9042,
-      longitude: 116.4074,
-      address: '奥林匹克森林公园'
-    },
-    people_count: 4,
-    people_required: 8,
-    gender_required: 'any',
-    status: 'active',
-    is_private: false,
-    tags: ['跑步', '健身', '夜跑'],
-    user_id: 7,
-    images: '',
-    value: null
-  },
-  {
-    id: 8,
-    title: '桌游聚会',
-    content: '周末桌游聚会，有各种经典桌游，适合新手和老手，快来享受策略游戏的乐趣！',
-    type: '娱乐休闲',
-    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 后天
-    location: {
-      latitude: 39.9042,
-      longitude: 116.4074,
-      address: '桌游咖啡厅'
-    },
-    people_count: 3,
-    people_required: 6,
-    gender_required: 'any',
-    status: 'active',
-    is_private: false,
-    tags: ['桌游', '策略', '聚会'],
-    user_id: 8,
-    images: '',
-    value: null
-  }
-]
-
 // 加载活动数据
 const loadActivities = async () => {
   try {
     loading.value = true
     // 使用示例数据
-    await new Promise(resolve => setTimeout(resolve, 500)) // 模拟网络延迟
-    activities.value = mockActivities
+    const response = await getSocialCards({token: authStore.token ?? ''}) as unknown as ApiResponse
+    if (response.code !== 200) {
+      message.error(response.message || '获取卡片失败')
+      return
+    }
+
+    activities.value = response.data.map((card: any) => ({
+            id: card.id,
+            user_id: card.user_id,
+            title: card.title,
+            content: card.content,
+            type: card.type,
+            images: card.images || '',
+            gender_required: card.gender_required,
+            people_required: card.people_required,
+            people_count: card.people_count,
+            location: card.location,
+            is_private: card.is_private,
+            status: card.status,
+            date: card.date,
+            tags: card.tags
+        }))
     message.success('活动数据加载完成')
   } catch (error) {
     console.error('加载活动失败:', error)
