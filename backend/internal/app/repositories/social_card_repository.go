@@ -70,8 +70,12 @@ func (s SocialCardRepositoryImpl) FindByUserId(userID uint64) ([]models.SocialCa
 }
 
 func (s SocialCardRepositoryImpl) FindAll() ([]models.SocialCard, error) {
-	//TODO implement me
-	panic("implement me")
+	var socialCards []models.SocialCard
+	err := s.db.Find(&socialCards).Error
+	if err != nil {
+		return nil, err
+	}
+	return socialCards, nil
 }
 
 func (s SocialCardRepositoryImpl) Exists(entity models.SocialCard) (bool, error) {

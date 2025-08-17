@@ -113,6 +113,28 @@ func (sc *SocialCardController) UpdateCard(c *gin.Context) {
 	})
 }
 
+func (sc *SocialCardController) GetAllCard(c *gin.Context) {
+	cards, err := sc.SocialService.FindAllCards()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	if cards == nil {
+		cards = []map[string]interface{}{}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "success",
+		"data":    cards,
+	})
+}
+
 func (sc *SocialCardController) FindByUserId(c *gin.Context) {
 	userIDStr := c.Param("user_id")
 	if userIDStr == "" {
