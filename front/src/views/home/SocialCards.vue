@@ -155,8 +155,7 @@ const handleCardSave = async (data: { cardData: SocialCard; saveType: string }) 
             if (index > -1) {
                 Object.assign(cards.value[index], {
                     ...data.cardData,
-                    status: data.saveType === 'draft' ? 'draft' : 'active',
-                    date: new Date().toISOString()
+                    status: data.saveType === 'draft' ? 'draft' : 'active'
                 })
 
                 const response = await updateSocialCard(authStore.token ?? '', cards.value[index].id!, cards.value[index]) as unknown as ApiResponse
@@ -174,7 +173,6 @@ const handleCardSave = async (data: { cardData: SocialCard; saveType: string }) 
                 images: '',
                 people_count: 0,
                 status: data.saveType === 'draft' ? 'draft' : 'active',
-                date: new Date().toISOString(),
                 value: null
             }
 

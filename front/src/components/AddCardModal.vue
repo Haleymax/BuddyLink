@@ -19,13 +19,12 @@
       </n-form-item>
 
       <n-form-item label="活动时间" path="date">
-        <n-date-picker v-model:value="cardData.date" type="datetime" placeholder="选择活动时间"
+        <n-date-picker v-model:value="dateTimestamp" type="datetime" placeholder="选择活动时间"
           :is-date-disabled="disablePastDates" :actions="['clear', 'now', 'confirm']"
-          @update:value="(value: number | null) => cardData.date = value ? new Date(value).toISOString() : ''"
           :time-picker-props="{
             actions: ['clear', 'now', 'confirm'],
-            isHourDisabled: (hour: number) => hour < new Date().getHours() && isToday(cardData.date ? Date.parse(cardData.date) : null),
-            isMinuteDisabled: (minute: number, hour: number) => hour === new Date().getHours() && minute < new Date().getMinutes() && isToday(cardData.date ? Date.parse(cardData.date) : null)
+            isHourDisabled: (hour: number) => hour < new Date().getHours() && isToday(dateTimestamp),
+            isMinuteDisabled: (minute: number, hour: number) => hour === new Date().getHours() && minute < new Date().getMinutes() && isToday(dateTimestamp)
           }" clearable class="datetime-picker" />
       </n-form-item>
 
@@ -212,6 +211,16 @@ const cardData = reactive<SocialCard>({
   value: null
 })
 
+// 用于日期选择器的时间戳值
+const dateTimestamp = ref<number | null>(Date.now())
+
+// 监听时间戳变化，同步到 cardData
+watch(dateTimestamp, (newTimestamp) => {
+  if (newTimestamp) {
+    cardData.date = new Date(newTimestamp).toISOString()
+  }
+})
+
 // Utility functions
 const disablePastDates = (timestamp: number) => {
   const today = new Date()
@@ -308,6 +317,7 @@ const closeModal = () => {
 
 const resetForm = () => {
   selectedLocation.value = null
+  dateTimestamp.value = Date.now()
   Object.assign(cardData, {
     title: '',
     content: '',
@@ -331,6 +341,11 @@ const handleSave = async (key: string) => {
   try {
     await formRef.value.validate()
     submitting.value = true
+
+    // 确保使用最新的时间戳更新 cardData.date
+    if (dateTimestamp.value) {
+      cardData.date = new Date(dateTimestamp.value).toISOString()
+    }
 
     // Emit save event with card data and save type
     emit('save', {
@@ -362,6 +377,8 @@ watch(() => props.editingCard, (editingCard) => {
     })
     tagList.value = editingCard.tags || []
     selectedLocation.value = editingCard.location
+    // 将 ISO 字符串转换为时间戳
+    dateTimestamp.value = editingCard.date ? new Date(editingCard.date).getTime() : Date.now()
   } else {
     resetForm()
   }

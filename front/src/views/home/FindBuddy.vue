@@ -106,6 +106,7 @@
             v-for="activity in selectedDateActivities" 
             :key="activity.id"
             class="activity-card"
+            :class="{ 'own-activity': isOwnActivity(activity) }"
             @click="handleActivityClick(activity)"
           >
             <div class="activity-header">
@@ -166,7 +167,8 @@
                 type="primary" 
                 size="small" 
                 @click.stop="joinActivity(activity)"
-                :disabled="activity.people_required && activity.people_count >= activity.people_required"
+                :disabled="activity.people_required && activity.people_count >= activity.people_required || isOwnActivity(activity)"
+                :class="{ 'own-activity-btn': isOwnActivity(activity) }"
               >
                 <template #icon>
                   <n-icon>
@@ -175,7 +177,10 @@
                     </svg>
                   </n-icon>
                 </template>
-                {{ activity.people_required && activity.people_count >= activity.people_required ? '已满员' : '加入' }}
+                {{ 
+                  isOwnActivity(activity) ? '我的活动' :
+                  (activity.people_required && activity.people_count >= activity.people_required ? '已满员' : '加入')
+                }}
               </n-button>
               
               <n-button size="small" @click.stop="viewActivityDetail(activity)">
@@ -203,6 +208,26 @@
         </div>
       </n-card>
     </div>
+
+    <!-- 活动详情模态框 -->
+    <n-modal 
+      v-model:show="showDetailModal" 
+      preset="card" 
+      title="活动详情"
+      style="width: 400px; max-width: 30vw;"
+      :mask-closable="true"
+    >
+      <BuddyCard 
+        v-if="selectedActivity"
+        :card="selectedActivity"
+        :selected="false"
+        :hideActions="true"
+        @edit="handleEditActivity"
+        @delete="handleDeleteActivity"
+        @click="() => {}"
+        @select="() => {}"
+      />
+    </n-modal>
   </div>
 </template>
 
@@ -214,6 +239,7 @@ import '../../styles/FindBuddy.css'
 import { getSocialCards } from '../../api/social-cards'
 import type { ApiResponse } from '../../api/apiResponse'
 import { useAuthStore } from '../../stores/auth.store'
+import BuddyCard from '../../components/BuddyCard.vue'
 
 const message = useMessage()
 const authStore = useAuthStore()
@@ -224,6 +250,8 @@ const filterType = ref<string>('')
 const filterGender = ref<string>('')
 const activities = ref<SocialCard[]>([])
 const loading = ref(false)
+const showDetailModal = ref(false)
+const selectedActivity = ref<SocialCard | null>(null)
 
 // 活动类型选项
 const activityTypeOptions = [
@@ -337,6 +365,11 @@ const handleDateSelect = (value: number) => {
   selectedDate.value = value
 }
 
+// 判断是否为自己发布的活动
+const isOwnActivity = (activity: SocialCard) => {
+  return authStore.user?.id === activity.user_id
+}
+
 const goToToday = () => {
   selectedDate.value = Date.now()
 }
@@ -358,8 +391,18 @@ const joinActivity = async (activity: SocialCard) => {
 }
 
 const viewActivityDetail = (activity: SocialCard) => {
-  console.log('查看活动详情:', activity)
-  // 这里可以跳转到活动详情页面或显示详情模态框
+  selectedActivity.value = activity
+  showDetailModal.value = true
+}
+
+const handleEditActivity = () => {
+  message.info('编辑功能暂未实现')
+  showDetailModal.value = false
+}
+
+const handleDeleteActivity = () => {
+  message.info('删除功能暂未实现')
+  showDetailModal.value = false
 }
 
 const goToCreateActivity = () => {

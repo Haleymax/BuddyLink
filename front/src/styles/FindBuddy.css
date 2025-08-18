@@ -135,6 +135,49 @@
   border-color: #1890ff;
 }
 
+/* 自己发布的活动样式 */
+.activity-card.own-activity {
+  background: #f8f8f8;
+  border-color: #d9d9d9;
+  opacity: 0.8;
+}
+
+.activity-card.own-activity:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transform: none;
+  border-color: #d9d9d9;
+}
+
+.activity-card.own-activity .activity-title {
+  color: #8c8c8c;
+}
+
+.activity-card.own-activity .activity-description {
+  color: #a8a8a8;
+}
+
+.activity-card.own-activity .activity-time,
+.activity-card.own-activity .location-info,
+.activity-card.own-activity .participant-info {
+  color: #a8a8a8;
+}
+
+/* 自己活动的按钮样式 */
+.own-activity-btn {
+  background-color: #d9d9d9 !important;
+  border-color: #d9d9d9 !important;
+  color: #8c8c8c !important;
+  cursor: not-allowed !important;
+}
+
+.own-activity-btn:hover {
+  background-color: #d9d9d9 !important;
+  border-color: #d9d9d9 !important;
+  color: #8c8c8c !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 .activity-header {
   display: flex;
   justify-content: space-between;
