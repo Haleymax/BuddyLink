@@ -126,7 +126,7 @@
             <span>{{ card.people_count }} / {{ card.people_required || '不限' }} 人</span>
           </div>
         </div>
-        <div class="card-actions">
+        <div class="card-actions" v-if="!props.hideActions">
           <n-button size="small" type="primary" ghost @click.stop="$emit('edit')">
             编辑
           </n-button>
@@ -147,6 +147,7 @@ import '../styles/BuddyCard.css'
 interface Props {
   card: SocialCard
   selected?: boolean
+  hideActions?: boolean
 }
 
 // 组件事件定义
@@ -158,7 +159,8 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  selected: false
+  selected: false,
+  hideActions: false
 })
 
 const emit = defineEmits<Emits>()
