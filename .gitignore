@@ -1,3 +1,4 @@
 .idea
 backend/config/config.yaml
 front/src/test
+front/src/components/AddCardModal.md

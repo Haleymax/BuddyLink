@@ -1,0 +1,449 @@
+/* AddCardModal 组件样式 */
+
+/* 位置选择卡片样式 */
+.location-selected-card {
+  margin-bottom: 8px;
+  border-radius: 8px;
+  border: 1px solid #52c41a;
+  background: linear-gradient(135deg, #f6ffed 0%, #f0f9ff 100%);
+  transition: all 0.3s ease;
+}
+
+.location-selected-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(82, 196, 26, 0.2);
+}
+
+.location-selected-text {
+  font-weight: 500;
+  color: #52c41a;
+  font-size: 14px;
+}
+
+/* 位置帮助文本 */
+.location-help-text {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+  display: block;
+  line-height: 1.5;
+}
+
+/* 标签帮助文本 */
+.tags-help-text {
+  font-size: 12px;
+  color: #999;
+  margin-left: 8px;
+  line-height: 1.5;
+}
+
+/* 隐私设置帮助文本 */
+.privacy-help-text {
+  font-size: 12px;
+  color: #999;
+  margin-left: 8px;
+  line-height: 1.5;
+}
+
+/* 日期时间选择器 */
+.datetime-picker {
+  width: 100%;
+}
+
+/* 模态框头部样式 */
+.modal-header-space {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1890ff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 位置选择模态框内容区域 */
+.location-selector-modal {
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 8px;
+}
+
+/* 表单项样式增强 */
+.add-card-modal .n-form-item {
+  margin-bottom: 20px;
+}
+
+.add-card-modal .n-form-item-label {
+  font-weight: 500;
+  color: #262626;
+  font-size: 14px;
+}
+
+/* 输入框样式增强 */
+.add-card-modal .n-input {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.add-card-modal .n-input:focus-within {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+}
+
+/* 选择器样式增强 */
+.add-card-modal .n-select {
+  border-radius: 6px;
+}
+
+.add-card-modal .n-select .n-base-selection {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.add-card-modal .n-select:hover .n-base-selection {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 文本域样式增强 */
+.add-card-modal .n-input--textarea {
+  border-radius: 6px;
+}
+
+.add-card-modal .n-input--textarea .n-input__textarea {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+/* 数字输入框样式增强 */
+.add-card-modal .n-input-number {
+  border-radius: 6px;
+  width: 100%;
+}
+
+/* 开关样式增强 */
+.add-card-modal .n-switch {
+  margin-right: 8px;
+}
+
+/* 动态标签样式增强 */
+.add-card-modal .n-dynamic-tags {
+  min-height: 36px;
+}
+
+.add-card-modal .n-tag {
+  border-radius: 4px;
+  font-size: 12px;
+  margin: 2px 4px 2px 0;
+}
+
+/* 日期选择器样式增强 */
+.add-card-modal .n-date-picker {
+  border-radius: 6px;
+}
+
+.add-card-modal .n-date-picker .n-input {
+  border-radius: 6px;
+}
+
+/* 位置选择按钮样式 */
+.add-card-modal .n-button--dashed {
+  border-radius: 8px;
+  border: 2px dashed #d9d9d9;
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+  transition: all 0.3s ease;
+  padding: 12px 16px;
+  height: auto;
+  min-height: 48px;
+}
+
+.add-card-modal .n-button--dashed:hover {
+  border-color: #1890ff;
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+}
+
+/* 按钮组样式 */
+.add-card-modal .n-space {
+  width: 100%;
+}
+
+.add-card-modal .n-button {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.add-card-modal .n-button:hover {
+  transform: translateY(-1px);
+}
+
+.add-card-modal .n-button--primary {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border: none;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}
+
+.add-card-modal .n-button--primary:hover {
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+}
+
+/* 描述列表样式增强 */
+.add-card-modal .n-descriptions {
+  background: #fafafa;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.add-card-modal .n-descriptions-item-label {
+  font-weight: 500;
+  color: #595959;
+  font-size: 13px;
+}
+
+.add-card-modal .n-descriptions-item-content {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  color: #262626;
+}
+
+/* 空状态样式 */
+.add-card-modal .n-empty {
+  padding: 16px;
+}
+
+/* 模态框样式增强 */
+.add-card-modal .n-dialog {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.add-card-modal .n-dialog__header {
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20px 24px 16px;
+}
+
+.add-card-modal .n-dialog__content {
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.add-card-modal .n-dialog__action {
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+  border-top: 1px solid #f0f0f0;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* 位置选择模态框特殊样式 */
+.location-modal .n-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.location-modal .n-card__header {
+  background: linear-gradient(135deg, #ffffff 0%, #f6ffed 100%);
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.location-modal .n-card__content {
+  padding: 0;
+  height: 100%;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .add-card-modal .n-dialog {
+    width: 95% !important;
+    max-width: none !important;
+    margin: 10px;
+  }
+  
+  .add-card-modal .n-dialog__content {
+    padding: 16px;
+    max-height: 60vh;
+  }
+  
+  .add-card-modal .n-dialog__header {
+    padding: 16px 16px 12px;
+  }
+  
+  .add-card-modal .n-dialog__action {
+    padding: 12px 16px;
+    flex-direction: column-reverse;
+  }
+  
+  .add-card-modal .n-button {
+    width: 100%;
+    margin: 0;
+  }
+  
+  .modal-header-space {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .location-help-text {
+    font-size: 11px;
+  }
+  
+  .tags-help-text,
+  .privacy-help-text {
+    font-size: 11px;
+    margin-left: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .add-card-modal .n-form-item {
+    margin-bottom: 16px;
+  }
+  
+  .add-card-modal .n-form-item-label {
+    font-size: 13px;
+  }
+  
+  .location-selected-card {
+    margin-bottom: 6px;
+  }
+  
+  .add-card-modal .n-descriptions {
+    padding: 8px;
+  }
+}
+
+/* 滚动条美化 */
+.add-card-modal ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.add-card-modal ::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 3px;
+}
+
+.add-card-modal ::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #d9d9d9 0%, #bfbfbf 100%);
+  border-radius: 3px;
+}
+
+.add-card-modal ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #bfbfbf 0%, #a6a6a6 100%);
+}
+
+/* 动画效果 */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.add-card-modal .n-dialog {
+  animation: modalFadeIn 0.3s ease;
+}
+
+/* 表单项动画 */
+@keyframes formItemSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.add-card-modal .n-form-item {
+  animation: formItemSlideIn 0.4s ease;
+}
+
+.add-card-modal .n-form-item:nth-child(1) { animation-delay: 0.05s; }
+.add-card-modal .n-form-item:nth-child(2) { animation-delay: 0.1s; }
+.add-card-modal .n-form-item:nth-child(3) { animation-delay: 0.15s; }
+.add-card-modal .n-form-item:nth-child(4) { animation-delay: 0.2s; }
+.add-card-modal .n-form-item:nth-child(5) { animation-delay: 0.25s; }
+.add-card-modal .n-form-item:nth-child(6) { animation-delay: 0.3s; }
+.add-card-modal .n-form-item:nth-child(7) { animation-delay: 0.35s; }
+.add-card-modal .n-form-item:nth-child(8) { animation-delay: 0.4s; }
+
+/* 焦点状态增强 */
+.add-card-modal .n-input:focus-within,
+.add-card-modal .n-select:focus-within {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 错误状态样式 */
+.add-card-modal .n-form-item--error .n-input,
+.add-card-modal .n-form-item--error .n-select .n-base-selection {
+  border-color: #ff4d4f;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+}
+
+/* 成功状态样式 */
+.add-card-modal .n-form-item--success .n-input,
+.add-card-modal .n-form-item--success .n-select .n-base-selection {
+  border-color: #52c41a;
+  box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.2);
+}
+
+/* 加载状态样式 */
+.add-card-modal .n-button--loading {
+  opacity: 0.8;
+  transform: none !important;
+}
+
+/* 下拉菜单样式增强 */
+.add-card-modal .n-dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e8e8e8;
+  overflow: hidden;
+}
+
+.add-card-modal .n-dropdown-option {
+  border-radius: 4px;
+  margin: 2px 4px;
+  transition: all 0.2s ease;
+}
+
+.add-card-modal .n-dropdown-option:hover {
+  transform: translateX(2px);
+}
+
+/* 标签输入增强样式 */
+.add-card-modal .n-dynamic-tags .n-input {
+  border-radius: 4px;
+  min-width: 100px;
+}
+
+.add-card-modal .n-dynamic-tags .n-tag {
+  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+  border: 1px solid #91d5ff;
+  color: #1890ff;
+  transition: all 0.2s ease;
+}
+
+.add-card-modal .n-dynamic-tags .n-tag:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}

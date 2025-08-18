@@ -92,194 +92,29 @@
             </n-empty>
         </div>
 
-        <!-- 创建/编辑卡片模态框 -->
-        <n-modal v-model:show="showCreateModal" preset="dialog" :title="editingCard ? '编辑搭子卡片' : '发布搭子需求'"
-            style="width: 90%; max-width: 800px;">
-            <template #header>
-                <div>{{ editingCard ? '编辑搭子卡片' : '发布搭子需求' }}</div>
-            </template>
-            <n-form :model="newCard" :rules="formRules" ref="formRef" label-width="100px" size="medium">
-                <n-form-item label="活动标题" path="title">
-                    <n-input v-model:value="newCard.title" placeholder="输入搭子活动标题" />
-                </n-form-item>
-
-                <n-form-item label="活动类型" path="activity_type">
-                    <n-select v-model:value="newCard.type" :options="activityTypeOptions" placeholder="选择活动类型" />
-                </n-form-item>
-
-                <n-form-item label="活动描述" path="content">
-                    <n-input v-model:value="newCard.content" type="textarea" placeholder="详细描述活动内容、要求等..." :rows="4" />
-                </n-form-item>
-
-                <n-form-item label="活动时间" path="activity_date">
-                    <n-date-picker v-model:value="newCard.date" type="datetime" placeholder="选择活动时间"
-                        :is-date-disabled="disablePastDates" :actions="['clear', 'now', 'confirm']"
-                        @update:value="(value: number | null) => newCard.date = value ? new Date(value).toISOString() : ''"
-                        :time-picker-props="{
-                            actions: ['clear', 'now', 'confirm'],
-                            isHourDisabled: (hour: number) => hour < new Date().getHours() && isToday(newCard.date ? Date.parse(newCard.date) : null),
-                            isMinuteDisabled: (minute: number, hour: number) => hour === new Date().getHours() && minute < new Date().getMinutes() && isToday(newCard.date ? Date.parse(newCard.date) : null)
-                        }" clearable class="datetime-picker" />
-                </n-form-item>
-
-                <n-form-item label="活动地点" path="location">
-                    <n-space vertical size="medium">
-                        <!-- 位置信息显示 -->
-                        <div v-if="selectedLocation">
-                            <n-card size="small" class="location-selected-card">
-                                <template #header>
-                                    <n-space align="center">
-                                        <n-icon color="#52c41a">
-                                            <svg viewBox="0 0 24 24">
-                                                <path fill="currentColor"
-                                                    d="M12,2A7,7 0 0,1 19,9C19,14.25 12,22 12,22C12,22 5,14.25 5,9A7,7 0 0,1 12,2M12,4A5,5 0 0,0 7,9C7,10 7,12 12,18.71C17,12 17,10 17,9A5,5 0 0,0 12,4M12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5Z" />
-                                            </svg>
-                                        </n-icon>
-                                        <span class="location-selected-text">已选择位置</span>
-                                    </n-space>
-                                </template>
-                                <n-descriptions :column="1" size="small">
-                                    <n-descriptions-item label="地址">
-                                        {{ selectedLocation.address || '未知地址' }}
-                                    </n-descriptions-item>
-                                    <n-descriptions-item label="坐标">
-                                        {{ selectedLocation.longitude.toFixed(6) }}, {{
-                                        selectedLocation.latitude.toFixed(6) }}
-                                    </n-descriptions-item>
-                                </n-descriptions>
-                                <template #action>
-                                    <n-space>
-                                        <n-button size="small" @click="showLocationSelector = true" type="primary"
-                                            ghost>
-                                            重新选择
-                                        </n-button>
-                                        <n-button size="small" @click="clearSelectedLocation" type="error" ghost>
-                                            清除位置
-                                        </n-button>
-                                    </n-space>
-                                </template>
-                            </n-card>
-                        </div>
-
-                        <!-- 位置选择按钮 -->
-                        <div v-else>
-                            <n-button type="primary" @click="showLocationSelector = true" block size="large" dashed>
-                                <template #icon>
-                                    <n-icon>
-                                        <svg viewBox="0 0 24 24">
-                                            <path fill="currentColor"
-                                                d="M12,2A7,7 0 0,1 19,9C19,14.25 12,22 12,22C12,22 5,14.25 5,9A7,7 0 0,1 12,2M12,4A5,5 0 0,0 7,9C7,10 7,12 12,18.71C17,12 17,10 17,9A5,5 0 0,0 12,4M12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5Z" />
-                                        </svg>
-                                    </n-icon>
-                                </template>
-                                点击选择活动地点
-                            </n-button>
-                            <n-text depth="3" class="location-help-text">
-                                支持地图选点、GPS定位、地址搜索
-                            </n-text>
-                        </div>
-                    </n-space>
-                </n-form-item>
-
-                <n-form-item label="需要人数">
-                    <n-input-number v-model:value="newCard.people_required" min="1" max="50" placeholder="不限" />
-                </n-form-item>
-
-                <n-form-item label="性别要求">
-                    <n-select v-model:value="newCard.gender_required" :options="genderOptions" placeholder="性别要求" />
-                </n-form-item>
-
-                <n-form-item label="标签">
-                    <n-dynamic-tags v-model:value="tagList" :max="5" :input-props="{
-                        placeholder: '输入标签按回车添加'
-                    }" @update:value="handleTagsUpdate" />
-                    <span class="tags-help-text">最多添加5个标签，按回车确认</span>
-                </n-form-item>
-
-                <n-form-item label="隐私设置">
-                    <n-switch v-model:value="newCard.is_private" />
-                    <span class="privacy-help-text">{{ newCard.is_private ? '仅自己可见位置' : '公开位置信息' }}</span>
-                </n-form-item>
-            </n-form>
-            <template #action>
-                <n-space>
-                    <n-button @click="closeCreateModal">取消</n-button>
-                    <n-dropdown :options="saveOptions" @select="handleSave">
-                        <n-button type="primary" :loading="submitting">
-                            {{ editingCard ? '保存修改' : '发布卡片' }}
-                        </n-button>
-                    </n-dropdown>
-                </n-space>
-            </template>
-        </n-modal>
-
-        <!-- 位置选择模态框 -->
-        <n-modal v-model:show="showLocationSelector" preset="card" title="选择活动地点"
-            style="width: 80vw; max-width: 1000px; height: 90vh;" :show-icon="false" :closable="true"
-            :mask-closable="false">
-            <template #header>
-                <n-space align="center" justify="space-between" class="modal-header-space">
-                    <n-space align="center">
-                        <n-icon color="#1890ff">
-                            <svg viewBox="0 0 24 24">
-                                <path fill="currentColor"
-                                    d="M12,2A7,7 0 0,1 19,9C19,14.25 12,22 12,22C12,22 5,14.25 5,9A7,7 0 0,1 12,2M12,4A5,5 0 0,0 7,9C7,10 7,12 12,18.71C17,12 17,10 17,9A5,5 0 0,0 12,4M12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5Z" />
-                            </svg>
-                        </n-icon>
-                        <span class="modal-header-title">选择活动地点</span>
-                    </n-space>
-                    <n-tag type="info" size="small">
-                        <template #icon>
-                            <n-icon>
-                                <svg viewBox="0 0 24 24">
-                                    <path fill="currentColor"
-                                        d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" />
-                                </svg>
-                            </n-icon>
-                        </template>
-                        点击地图中"确认使用此位置"按钮完成选择
-                    </n-tag>
-                </n-space>
-            </template>
-
-            <div style="height: calc(90vh - 80px); width: 100%; padding: 16px;" class="location-selector-modal">
-                <MapComponent @location-selected="handleLocationSelected" :initial-location="selectedLocation"
-                    :is-modal="true" />
-            </div>
-        </n-modal>
+        <!-- 创建/编辑卡片模态框组件 -->
+        <AddCardModal 
+            v-model:show="showCreateModal" 
+            :editing-card="editingCard"
+            @save="handleCardSave"
+            @cancel="handleCardCancel"
+        />
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, reactive, onMounted } from 'vue'
-import { useMessage, type FormInst, type FormRules, type DropdownOption } from 'naive-ui'
+import { ref, computed, onMounted } from 'vue'
+import { useMessage } from 'naive-ui'
 import { type SocialCard } from '../../model/social-cards'
-import type { Location } from '../../model/location'
 import BuddyCard from '../../components/BuddyCard.vue'
-import MapComponent from '../../components/MapComponent.vue'
+import AddCardModal from '../../components/AddCardModal.vue'
 import '../../styles/SocialCards.css'
 import { createSocialCard, deleteSocialCard, getSocialCards, updateSocialCard } from '../../api/social-cards'
 import type { ApiResponse } from '../../api/apiResponse'
 import { useAuthStore } from '../../stores/auth.store'
 import router from '../../router'
 
-const disablePastDates = (timestamp: number) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return timestamp < today.getTime()
-}
-
-const isToday = (timestamp: number | null): boolean => {
-    if (!timestamp) return false
-    const date = new Date(timestamp)
-    const today = new Date()
-    return date.getDate() === today.getDate() &&
-        date.getMonth() === today.getMonth() &&
-        date.getFullYear() === today.getFullYear()
-}
-
 const message = useMessage()
-const formRef = ref<FormInst | null>(null)
 const authStore = useAuthStore()
 
 const searchKeyword = ref('')
@@ -296,88 +131,6 @@ const pageSize = ref(12)
 
 const cards = ref<SocialCard[]>([])
 
-// 标签列表
-const tagList = ref<string[]>([])
-
-// 位置选择相关状态
-const selectedLocation = ref<Location | null>(null)
-const showLocationSelector = ref(false)
-
-// 处理标签更新
-const handleTagsUpdate = (tags: string[]) => {
-    tagList.value = tags
-    newCard.tags = tags
-}
-
-// 处理位置选择
-const handleLocationSelected = (location: Location) => {
-    selectedLocation.value = location
-    newCard.location = location
-    showLocationSelector.value = false  // 选择位置后自动关闭模态框
-    message.success('位置选择成功！')
-}
-
-// 清除选择的位置
-const clearSelectedLocation = () => {
-    selectedLocation.value = null
-    newCard.location = { longitude: 0, latitude: 0, address: '' }
-    message.info('已清除位置信息')
-}
-
-const newCard = reactive<SocialCard>({
-    user_id: 1,
-    title: '',
-    content: '',
-    type: '',
-    images: '',
-    gender_required: 'any',
-    people_required: null,
-    people_count: 0,
-    location: { longitude: 0, latitude: 0, address: '' },
-    is_private: false,
-    status: 'draft',
-    date: new Date().toISOString(),
-    tags: [],
-    id: 0
-})
-
-// 表单验证规则
-const formRules: FormRules = {
-    title: [
-        { required: true, message: '请输入活动标题', trigger: 'blur' }
-    ],
-    content: [
-        { required: true, message: '请输入活动描述', trigger: 'blur' }
-    ],
-    type: [
-        { required: true, message: '请选择活动类型', trigger: 'change' }
-    ],
-    location: [
-        {
-            required: true,
-            validator: (_rule: any, value: Location) => {
-                if (!value || !value.address) {
-                    return new Error('请选择活动地点')
-                }
-                return true
-            },
-            trigger: 'change'
-        }
-    ]
-}
-
-// 保存选项
-const saveOptions: DropdownOption[] = [
-    {
-        label: '立即发布',
-        key: 'publish'
-    },
-    {
-        label: '保存为草稿',
-        key: 'draft'
-    }
-]
-
 // 选项数据
 const statusOptions = [
     { label: '全部', value: '' },
@@ -391,21 +144,70 @@ const sortOptions = [
     { label: '最新发布', value: 'date' }
 ]
 
-const activityTypeOptions = [
-    { label: '运动健身', value: '运动健身' },
-    { label: '娱乐休闲', value: '娱乐休闲' },
-    { label: '学习交流', value: '学习交流' },
-    { label: '旅行出游', value: '旅行出游' },
-    { label: '美食探店', value: '美食探店' },
-    { label: '文化艺术', value: '文化艺术' },
-    { label: '其他', value: '其他' }
-]
+// 处理卡片保存
+const handleCardSave = async (data: { cardData: SocialCard; saveType: string }) => {
+    try {
+        submitting.value = true
+        
+        if (editingCard.value) {
+            // 编辑模式
+            const index = cards.value.findIndex(c => c.id === editingCard.value!.id)
+            if (index > -1) {
+                Object.assign(cards.value[index], {
+                    ...data.cardData,
+                    status: data.saveType === 'draft' ? 'draft' : 'active',
+                    date: new Date().toISOString()
+                })
 
-const genderOptions = [
-    { label: '不限', value: 'any' },
-    { label: '男生', value: '男生' },
-    { label: '女生', value: '女生' }
-]
+                const response = await updateSocialCard(authStore.token ?? '', cards.value[index].id!, cards.value[index]) as unknown as ApiResponse
+                if (response.code !== 200) {
+                    message.error(response.message || '更新卡片失败，请稍后再试')
+                    return
+                }
+                message.success(data.saveType === 'draft' ? '已保存为草稿' : '卡片更新成功')
+            }
+        } else {
+            // 创建模式
+            const newCardData: SocialCard = {
+                ...data.cardData,
+                user_id: 1,
+                images: '',
+                people_count: 0,
+                status: data.saveType === 'draft' ? 'draft' : 'active',
+                date: new Date().toISOString(),
+                value: null
+            }
+
+            const token = authStore.token
+            if (!token) {
+                message.error('请先登录')
+                router.push('/login')
+                return
+            }
+
+            const response = await createSocialCard(token, newCardData) as unknown as ApiResponse
+            if (response.code !== 200) {
+                message.error(response.message || '创建卡片失败，请稍后再试')
+                return
+            }
+            message.success('卡片创建成功')
+            cards.value.unshift(newCardData)
+        }
+
+        showCreateModal.value = false
+        editingCard.value = null
+    } catch (error) {
+        message.error('操作失败，请重试')
+    } finally {
+        submitting.value = false
+    }
+}
+
+// 处理卡片取消
+const handleCardCancel = () => {
+    showCreateModal.value = false
+    editingCard.value = null
+}
 
 // 计算属性
 const filteredCards = computed(() => {
@@ -511,18 +313,6 @@ const handleBatchDelete = async () => {
 
 const editCard = (card: SocialCard) => {
     editingCard.value = card
-    Object.assign(newCard, {
-        title: card.title,
-        content: card.content,
-        type: card.type,
-        location: card.location,
-        people_required: card.people_required,
-        gender_required: card.gender_required,
-        tags: card.tags || [],
-        is_private: card.is_private
-    })
-    tagList.value = card.tags || []
-    selectedLocation.value = card.location
     showCreateModal.value = true
 }
 
@@ -537,113 +327,6 @@ const deleteCard = async (card: SocialCard) => {
         } else {
             message.error('删除失败，请重试')
         }
-    }
-}
-
-const closeCreateModal = () => {
-    showCreateModal.value = false
-    editingCard.value = null
-    selectedLocation.value = null
-    // 重置表单
-    Object.assign(newCard, {
-        title: '',
-        content: '',
-        type: '',
-        images: '',
-        location: { longitude: 0, latitude: 0, address: '' },
-        people_required: null,
-        gender_required: 'any',
-        people_count: 0,
-        tags: [],
-        is_private: false,
-        date: new Date().toISOString()
-    })
-    tagList.value = []
-}
-
-const handleSave = async (key: string) => {
-    if (!formRef.value) return
-
-    try {
-        await formRef.value.validate()
-        submitting.value = true
-
-        // 模拟API调用
-        setTimeout(async () => {
-            if (editingCard.value) {
-                // 编辑模式
-                const index = cards.value.findIndex(c => c.id === editingCard.value!.id)
-                if (index > -1) {
-                    Object.assign(cards.value[index], {
-                        title: newCard.title,
-                        content: newCard.content,
-                        type: newCard.type,
-                        location: newCard.location,
-                        people_required: newCard.people_required,
-                        gender_required: newCard.gender_required,
-                        tags: newCard.tags,
-                        is_private: newCard.is_private,
-                        status: key === 'draft' ? 'draft' : 'active',
-                        date: new Date().toISOString()
-                    })
-
-                    const response = await updateSocialCard(authStore.token ?? '', cards.value[index].id!, cards.value[index]) as unknown as ApiResponse
-                    if (response.code !== 200) {
-                        message.error(response.message || '更新卡片失败，请稍后再试')
-                        submitting.value = false
-                        return
-                    }
-                    message.success(key === 'draft' ? '已保存为草稿' : '卡片更新成功')
-
-
-                }
-            } else {
-                // 创建模式
-                const newCardData: SocialCard = {
-                    user_id: 1,
-                    title: newCard.title,
-                    content: newCard.content,
-                    type: newCard.type,
-                    images: '',
-                    location: newCard.location,
-                    people_required: newCard.people_required,
-                    people_count: 0,
-                    gender_required: newCard.gender_required,
-                    tags: newCard.tags,
-                    is_private: newCard.is_private,
-                    status: key === 'draft' ? 'draft' : 'active',
-                    date: new Date().toISOString(),
-                }
-
-                console.log(newCardData)
-
-                const token = authStore.token
-                if (!token) {
-                    message.error('请先登录')
-                    submitting.value = false
-                    router.push('/login')
-                    return
-                }
-
-                const response = await createSocialCard(token, newCardData) as unknown as ApiResponse
-                if (response.code !== 200) {
-                    message.error(response.message || '创建卡片失败，请稍后再试')
-                    submitting.value = false
-                    return
-                }
-                message.success('卡片创建成功')
-                console.log('New card created:', response.data)
-                console.log(response.message)
-                cards.value.unshift(newCardData)
-            }
-
-            closeCreateModal()
-            submitting.value = false
-        }, 1000)
-
-    } catch (error) {
-        message.error('请检查表单输入')
-        submitting.value = false
     }
 }
 
