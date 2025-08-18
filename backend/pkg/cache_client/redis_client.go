@@ -19,6 +19,8 @@ type RedisClient interface {
 	Get(key string) ([]byte, error)
 	Set(key string, data []byte, expiration time.Duration) error
 	Del(key string) error
+	Lpush(key string, values ...interface{}) error
+	Rpop(key string) (interface{}, error)
 	Close() error
 }
 
@@ -74,6 +76,25 @@ func (r redisClientImpl) Del(key string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	return r.Client.Del(ctx, key).Err()
+}
+
+func (r redisClientImpl) Lpush(key string, values ...interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return r.Client.LPush(ctx, key, values...).Err()
+}
+
+func (r redisClientImpl) Rpop(key string) (interface{}, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	val, err := r.Client.RPop(ctx, key).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return val, err
 }
 
 func (r redisClientImpl) Close() error {
