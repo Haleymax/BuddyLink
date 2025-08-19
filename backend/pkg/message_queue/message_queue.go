@@ -83,9 +83,13 @@ type MessageHandler func(message TaskMessage) error
 
 func (mq *MessageQueue) StartConsumer(handler MessageHandler, numConsumers int) {
 	mq.wg.Add(1)
-	go mq.
-}
+	go mq.messagePuller()
 
+	for i := 0; i < numConsumers; i++ {
+		mq.wg.Add(1)
+		go mq.messageProcessor(handler, i)
+	}
+}
 
 func (mq *MessageQueue) messagePuller() {
 	defer mq.wg.Done()
@@ -93,11 +97,87 @@ func (mq *MessageQueue) messagePuller() {
 	for {
 		select {
 		case <-mq.ctx.Done():
-		    log.Println("Message puller stopping...")
+			log.Println("Message puller stopping...")
 			close(mq.messageChan)
 			return
 		default:
 			result, err := mq.client.BRPop(mq.ctx, 1*time.Second, mq.queueName).Result()
+			if err != nil {
+				log.Printf("failed to pull message: %v", err)
+				continue
+			}
+
+			if len(result) < 2 {
+				continue
+			}
+
+			var message TaskMessage
+			err = json.Unmarshal([]byte(result[1]), &message)
+			if err != nil {
+				log.Printf("failed to unmarshal message: %v", err)
+				continue
+			}
+			select {
+			case mq.messageChan <- message:
+				log.Printf("pulled message %s", message.ID)
+			case <-mq.ctx.Done():
+				return
+			}
 		}
 	}
+}
+
+func (mq *MessageQueue) messageProcessor(handler MessageHandler, workerId int) {
+	defer mq.wg.Done()
+
+	for message := range mq.messageChan {
+		mq.pool.Submit(func() {
+			mq.handleMessage(message, handler, workerId)
+		})
+	}
+	log.Printf("Message %d stopped", workerId)
+}
+
+func (mq *MessageQueue) handleMessage(message TaskMessage, handler MessageHandler, workerId int) {
+	log.Printf("Worker %d processing message %s", workerId, message.ID)
+
+	start := time.Now()
+	if err := handler(message); err != nil {
+		log.Printf("failed to handle message %s: %v", message.ID, err)
+	} else {
+		log.Printf("Worker %d completed message %s in %v", workerId, message.ID, time.Since(start))
+	}
+}
+
+func (mq *MessageQueue) Close() {
+	mq.cancelFunc()
+	mq.wg.Wait()
+	mq.pool.Wait()
+	mq.pool.Close()
+	_ = mq.client.Close()
+	log.Panicln("Message queue closed")
+}
+
+func (mq *MessageQueue) Length() (int64, error) {
+	return mq.client.LLen(mq.ctx, mq.queueName).Result()
+}
+
+func (mq *MessageQueue) ProduceBatch(messages []TaskMessage) error {
+	pipe := mq.client.Pipeline()
+	for i := range messages {
+		messages[i].ID = fmt.Sprintf("%d", time.Now().UnixNano()+int64(i))
+		messages[i].CreatedAt = time.Now()
+
+		jsonData, err := json.Marshal(messages[i])
+		if err != nil {
+			return fmt.Errorf("failed to marshal message: %v", err)
+		}
+		pipe.LPush(mq.ctx, mq.queueName, jsonData)
+	}
+	_, err := pipe.Exec(mq.ctx)
+	if err != nil {
+		return fmt.Errorf("failed to produce message: %v", err)
+	}
+	log.Panicln("Message produced successfully")
+	return nil
 }
