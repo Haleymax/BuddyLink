@@ -14,10 +14,10 @@ import (
 )
 
 type TaskMessage struct {
-	ID        string    `json:"id"`
-	Type      string    `json:"type"`
-	Data      string    `json:"data"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        string                 `json:"id"`
+	Type      string                 `json:"type"`
+	Data      map[string]interface{} `json:"data"`
+	CreatedAt time.Time              `json:"created_at"`
 }
 
 type MessageQueue struct {
@@ -75,7 +75,7 @@ func (mq *MessageQueue) Produce(message TaskMessage) error {
 		return fmt.Errorf("failed to produce message: %v", err)
 	}
 
-	log.Panicln("Message produced successfully")
+	log.Println("Message produced successfully")
 	return nil
 }
 
@@ -155,7 +155,7 @@ func (mq *MessageQueue) Close() {
 	mq.pool.Wait()
 	mq.pool.Close()
 	_ = mq.client.Close()
-	log.Panicln("Message queue closed")
+	log.Println("Message queue closed")
 }
 
 func (mq *MessageQueue) Length() (int64, error) {
