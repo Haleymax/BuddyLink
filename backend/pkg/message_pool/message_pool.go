@@ -61,7 +61,26 @@ func NewMessagePool(poolName string) (*MessagePool, error) {
 	}, nil
 }
 
-func (mp *MessagePool) Produce(message TaskMessage) error {
+// SetMessageAsync 使用工作池异步设置消息
+func (mp *MessagePool) SetMessageAsync(message TaskMessage, callback func(err error)) {
+	mp.pool.Submit(func() {
+		err := mp.SetMessageInternal(message)
+		if callback != nil {
+			callback(err)
+		}
+	})
+}
+
+func (mp *MessagePool) GetMessageAsync(key string, callback func(TaskMessage, error)) {
+	mp.pool.Submit(func() {
+		msg, err := mp.GetMessageInternal(key)
+		if callback != nil {
+			callback(msg, err)
+		}
+	})
+}
+
+func (mp *MessagePool) SetMessageInternal(message TaskMessage) error {
 	message.ID = fmt.Sprintf("%d", time.Now().UnixNano())
 	message.CreatedAt = time.Now()
 
@@ -72,8 +91,19 @@ func (mp *MessagePool) Produce(message TaskMessage) error {
 
 	err = mp.client.Set(mp.ctx, mp.poolName+":"+message.ID, jsonData, 0).Err()
 	if err != nil {
-		return fmt.Errorf("failed to store message in Redis: %v", err)
+		return fmt.Errorf("failed to set message: %v", err)
 	}
-
 	return nil
+}
+
+func (mp *MessagePool) GetMessageInternal(key string) (TaskMessage, error) {
+	data, err := mp.client.Get(mp.ctx, mp.poolName+":"+key).Bytes()
+	if err != nil {
+		return TaskMessage{}, err
+	}
+	var message TaskMessage
+	if err = json.Unmarshal(data, &message); err != nil {
+		return TaskMessage{}, err
+	}
+	return message, nil
 }
