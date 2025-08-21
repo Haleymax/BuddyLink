@@ -158,6 +158,7 @@ import { type SocialCard } from '../model/social-cards'
 import type { Location } from '../model/location'
 import MapComponent from './MapComponent.vue'
 import '../styles/AddCardModal.css'
+import { useAuthStore } from '../stores/auth.store'
 
 // Props
 interface Props {
@@ -185,6 +186,7 @@ const submitting = ref(false)
 const showLocationSelector = ref(false)
 const selectedLocation = ref<Location | null>(null)
 const tagList = ref<string[]>([])
+const authStore = useAuthStore()
 
 // Computed
 const showModal = computed({
@@ -194,7 +196,7 @@ const showModal = computed({
 
 // Card data
 const cardData = reactive<SocialCard>({
-  user_id: 1,
+  user_id: Number(authStore.user?.id),
   title: '',
   content: '',
   type: '',
