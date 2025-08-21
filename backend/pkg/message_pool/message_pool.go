@@ -93,6 +93,17 @@ func (mp *MessagePool) GetAllKeysAsync(userId uint64, messageType string, callba
 	})
 }
 
+func (mp *MessagePool) RemoveMessage(userId uint64, message_type string, message_id string, callback func(int64, error)) error {
+	key := fmt.Sprintf("%s:%s:%d:%s", mp.poolName, message_type, userId, message_id)
+	mp.pool.Submit(func() {
+		result, err := mp.RemoveMessageByKey(key)
+		if callback != nil {
+			callback(result, err)
+		}
+	})
+	return nil
+}
+
 func (mp *MessagePool) GetAllKeys(userId uint64, messageType string) ([]string, error) {
 	var message_ids []string
 
@@ -140,6 +151,10 @@ func (mp *MessagePool) GetMessageInternal(key string) (TaskMessage, error) {
 		return TaskMessage{}, err
 	}
 	return message, nil
+}
+
+func (mp *MessagePool) RemoveMessageByKey(key string) (int64, error) {
+	return mp.client.Del(mp.ctx, key).Result()
 }
 
 // 同步操作

@@ -9,6 +9,7 @@ type MessageService interface {
 	GetMessage(userId uint64, messageType string, messageId string) (messagepool.TaskMessage, error)
 	GetAllKeys(userID uint64, messageType string) ([]string, error)
 	GetAllMessage(userID uint64, messageType string) ([]messagepool.TaskMessage, error)
+	RemoveMessage(userId uint64, messageType string, messageId string) error
 }
 
 type messageServiceImpl struct {
@@ -82,4 +83,16 @@ func (m *messageServiceImpl) GetAllMessage(userID uint64, messageType string) ([
 	}
 
 	return messages, nil
+}
+
+func (m *messageServiceImpl) RemoveMessage(userId uint64, messageType string, messageId string) error {
+	errChan := make(chan error, 1)
+	m.messagePool.RemoveMessage(userId, messageType, messageId, func(result int64, err error) {
+		if err != nil {
+			errChan <- err
+		} else {
+			errChan <- nil
+		}
+	})
+	return <-errChan
 }
