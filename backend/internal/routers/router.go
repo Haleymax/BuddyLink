@@ -23,4 +23,5 @@ func SetupRouter(router *gin.Engine, db *gorm.DB) {
 	router_groups.SetupUserRouters(api, Controllers.UserController)
 	router_groups.SetupSocialCardRouters(api, Controllers.SocialCardController, middleware.UserAuthMiddleware())
 	router_groups.SetupTestRouters(api, Controllers.TestController, middleware.UserAuthMiddleware())
+	router_groups.SetupMessageRoutes(api, Controllers.MessageController, middleware.UserAuthMiddleware())
 }

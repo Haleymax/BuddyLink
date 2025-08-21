@@ -27,3 +27,7 @@ redis:
   port: "27017"
   password: "password"
   db: 0
+
+message:
+  queue_db: "6"
+  pool_db: "7"

@@ -1,19 +1,21 @@
 package config
 
 import (
-	"github.com/spf13/viper"
 	"log"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Server ServerConfig `mapstructure:"server"`
-	MySQL  MySQLConfig  `mapstructure:"mysql"`
-	Minio  MinioConfig  `mapstructure:"minio"`
-	SMTP   SMTPConfig   `mapstructure:"smtp"`
-	Redis  RedisConfig  `mapstructure:"redis"`
+	Server  ServerConfig  `mapstructure:"server"`
+	MySQL   MySQLConfig   `mapstructure:"mysql"`
+	Minio   MinioConfig   `mapstructure:"minio"`
+	SMTP    SMTPConfig    `mapstructure:"smtp"`
+	Redis   RedisConfig   `mapstructure:"redis"`
+	Message MessageConfig `mapstructure:"message"`
 }
 
 var (
