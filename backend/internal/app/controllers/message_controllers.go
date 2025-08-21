@@ -4,7 +4,6 @@ import (
 	"buddylink/internal/app/services"
 	messagepool "buddylink/pkg/message_pool"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,9 +44,9 @@ func (ctrl *MessageController) AddMessage(c *gin.Context) {
 }
 
 func (ctrl *MessageController) GetAllKeys(c *gin.Context) {
-	userIDStr := c.Query("user_id")
+	userIDVal, exists := c.Get("id")
 	messageType := c.Query("type")
-	if userIDStr == "" {
+	if !exists {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    http.StatusBadRequest,
 			"message": "user ID is required",
@@ -64,15 +63,16 @@ func (ctrl *MessageController) GetAllKeys(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(userIDStr, 10, 64)
-	if err != nil {
+	userID, ok := userIDVal.(uint64)
+	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    http.StatusBadRequest,
-			"message": "invalid user ID",
+			"message": "invalid user ID type",
 			"data":    nil,
 		})
 		return
 	}
+
 	keys, err := ctrl.messageService.GetAllKeys(userID, messageType)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -90,10 +90,10 @@ func (ctrl *MessageController) GetAllKeys(c *gin.Context) {
 }
 
 func (ctrl *MessageController) GetMessage(c *gin.Context) {
-	userIDStr := c.Query("user_id")
+	userIDVal, exists := c.Get("id")
 	messageType := c.Query("type")
 	messageId := c.Query("message_id")
-	if userIDStr == "" {
+	if !exists {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    http.StatusBadRequest,
 			"message": "user ID is required",
@@ -118,11 +118,11 @@ func (ctrl *MessageController) GetMessage(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(userIDStr, 10, 64)
-	if err != nil {
+	userID, ok := userIDVal.(uint64)
+	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    http.StatusBadRequest,
-			"message": "invalid user ID",
+			"message": "invalid user ID type",
 			"data":    nil,
 		})
 		return
@@ -144,9 +144,9 @@ func (ctrl *MessageController) GetMessage(c *gin.Context) {
 }
 
 func (ctrl *MessageController) GetAllMessages(c *gin.Context) {
-	userIDStr := c.Query("user_id")
+	userIDVal, exists := c.Get("id")
 	messageType := c.Query("type")
-	if userIDStr == "" {
+	if !exists {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    http.StatusBadRequest,
 			"message": "user ID is required",
@@ -163,15 +163,16 @@ func (ctrl *MessageController) GetAllMessages(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(userIDStr, 10, 64)
-	if err != nil {
+	userID, ok := userIDVal.(uint64)
+	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    http.StatusBadRequest,
-			"message": "invalid user ID",
+			"message": "invalid user ID type",
 			"data":    nil,
 		})
 		return
 	}
+
 	messages, err := ctrl.messageService.GetAllMessage(userID, messageType)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
