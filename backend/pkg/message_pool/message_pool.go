@@ -126,3 +126,12 @@ func (mp *MessagePool) Close() {
 	mp.pool.Close()
 	close(mp.messageChan)
 }
+
+func GetMessagePool() *MessagePool {
+	cfg := config.GetConfig()
+	pool, err := NewMessagePool(cfg.Message.PoolName)
+	if err != nil {
+		return nil
+	}
+	return pool
+}
