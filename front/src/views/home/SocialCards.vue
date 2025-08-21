@@ -167,9 +167,10 @@ const handleCardSave = async (data: { cardData: SocialCard; saveType: string }) 
             }
         } else {
             // 创建模式
+            message.info(String(authStore.$id))
             const newCardData: SocialCard = {
                 ...data.cardData,
-                user_id: 1,
+                user_id: Number(authStore.user?.id),
                 images: '',
                 people_count: 0,
                 status: data.saveType === 'draft' ? 'draft' : 'active',
