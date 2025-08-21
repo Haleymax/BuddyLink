@@ -11,6 +11,7 @@ func SetupMessageRoutes(router *gin.RouterGroup, controllers controllers.Message
 	{
 		messageGroup.POST("/message", controllers.AddMessage)
 		messageGroup.GET("/message", controllers.GetMessage)
+		messageGroup.GET("/messages", controllers.GetAllMessages)
 		messageGroup.GET("/message/keys", controllers.GetAllKeys)
 	}
 }

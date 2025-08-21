@@ -8,6 +8,7 @@ type MessageService interface {
 	SetMessage(message messagepool.TaskMessage) error
 	GetMessage(userId uint64, messageType string, messageId string) (messagepool.TaskMessage, error)
 	GetAllKeys(userID uint64, messageType string) ([]string, error)
+	GetAllMessage(userID uint64, messageType string) ([]messagepool.TaskMessage, error)
 }
 
 type messageServiceImpl struct {
@@ -63,4 +64,22 @@ func (m *messageServiceImpl) GetAllKeys(userID uint64, messageType string) ([]st
 	case err := <-errChan:
 		return nil, err
 	}
+}
+
+func (m *messageServiceImpl) GetAllMessage(userID uint64, messageType string) ([]messagepool.TaskMessage, error) {
+	keys, err := m.GetAllKeys(userID, messageType)
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []messagepool.TaskMessage
+	for _, key := range keys {
+		message, err := m.GetMessage(userID, messageType, key)
+		if err != nil {
+			return nil, err
+		}
+		messages = append(messages, message)
+	}
+
+	return messages, nil
 }
