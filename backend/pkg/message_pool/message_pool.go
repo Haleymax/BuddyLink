@@ -107,3 +107,22 @@ func (mp *MessagePool) GetMessageInternal(key string) (TaskMessage, error) {
 	}
 	return message, nil
 }
+
+// 同步操作
+func (mp *MessagePool) SetMessage(message TaskMessage) error {
+	return mp.SetMessageInternal(message)
+}
+
+func (mp *MessagePool) GetMessage(key string) (TaskMessage, error) {
+	return mp.GetMessageInternal(key)
+}
+
+func (mp *MessagePool) Wait() {
+	mp.wg.Wait()
+}
+
+func (mp *MessagePool) Close() {
+	mp.cancelFunc()
+	mp.pool.Close()
+	close(mp.messageChan)
+}
