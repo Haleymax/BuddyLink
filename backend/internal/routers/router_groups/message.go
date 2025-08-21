@@ -10,5 +10,6 @@ func SetupMessageRoutes(router *gin.RouterGroup, controllers controllers.Message
 	messageGroup := router.Group("/messages")
 	{
 		messageGroup.POST("/message", controllers.AddMessage)
+		messageGroup.GET("/message/keys/:user_id", controllers.GetAllKeys)
 	}
 }

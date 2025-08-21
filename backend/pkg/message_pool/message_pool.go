@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,6 +15,8 @@ import (
 
 type TaskMessage struct {
 	ID        string                 `json:"id"`
+	Sender    uint64                 `json:"sender"`
+	Receiver  uint64                 `json:"receiver"`
 	Type      string                 `json:"type"`
 	Data      map[string]interface{} `json:"data"`
 	CreatedAt time.Time              `json:"created_at"`
@@ -80,6 +83,34 @@ func (mp *MessagePool) GetMessageAsync(key string, callback func(TaskMessage, er
 	})
 }
 
+func (mp *MessagePool) GetAllKeysAsync(userId uint64, callback func([]string, error)) {
+	mp.pool.Submit(func() {
+		keys, err := mp.GetAllKeys(userId)
+		if callback != nil {
+			callback(keys, err)
+		}
+	})
+}
+
+func (mp *MessagePool) GetAllKeys(userId uint64) ([]string, error) {
+	var message_ids []string
+
+	pattern := fmt.Sprintf("%s:*:%d:*", mp.poolName, userId)
+
+	iter := mp.client.Scan(mp.ctx, 0, pattern, 0).Iterator()
+	for iter.Next(mp.ctx) {
+		key := iter.Val()
+		keys := strings.Split(key, ":")
+		message_ids = append(message_ids, keys[len(keys)-1])
+	}
+
+	if err := iter.Err(); err != nil {
+		return nil, fmt.Errorf("failed to scan keys: %v", err)
+	}
+
+	return message_ids, nil
+}
+
 func (mp *MessagePool) SetMessageInternal(message TaskMessage) error {
 	message.ID = fmt.Sprintf("%d", time.Now().UnixNano())
 	message.CreatedAt = time.Now()
@@ -89,7 +120,9 @@ func (mp *MessagePool) SetMessageInternal(message TaskMessage) error {
 		return fmt.Errorf("failed to marshal message: %v", err)
 	}
 
-	err = mp.client.Set(mp.ctx, mp.poolName+":"+message.ID, jsonData, 0).Err()
+	key := fmt.Sprintf("%s:%s:%d:%s", mp.poolName, message.Type, message.Receiver, message.ID)
+
+	err = mp.client.Set(mp.ctx, key, jsonData, 0).Err()
 	if err != nil {
 		return fmt.Errorf("failed to set message: %v", err)
 	}
@@ -97,7 +130,7 @@ func (mp *MessagePool) SetMessageInternal(message TaskMessage) error {
 }
 
 func (mp *MessagePool) GetMessageInternal(key string) (TaskMessage, error) {
-	data, err := mp.client.Get(mp.ctx, mp.poolName+":"+key).Bytes()
+	data, err := mp.client.Get(mp.ctx, key).Bytes()
 	if err != nil {
 		return TaskMessage{}, err
 	}
@@ -115,6 +148,10 @@ func (mp *MessagePool) SetMessage(message TaskMessage) error {
 
 func (mp *MessagePool) GetMessage(key string) (TaskMessage, error) {
 	return mp.GetMessageInternal(key)
+}
+
+func (mp *MessagePool) Length() (int64, error) {
+	return mp.client.DBSize(mp.ctx).Result()
 }
 
 func (mp *MessagePool) Wait() {

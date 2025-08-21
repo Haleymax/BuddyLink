@@ -7,6 +7,7 @@ import (
 type MessageService interface {
 	SetMessage(message messagepool.TaskMessage) error
 	GetMessage(key string) (messagepool.TaskMessage, error)
+	GetAllKeys(userID uint64) ([]string, error)
 }
 
 type messageServiceImpl struct {
@@ -20,10 +21,34 @@ func NewMessageService(messagePool *messagepool.MessagePool) MessageService {
 }
 
 func (m *messageServiceImpl) SetMessage(message messagepool.TaskMessage) error {
-	m.messagePool.SetMessageAsync(message, nil)
-	return nil
+	errChan := make(chan error, 1)
+	m.messagePool.SetMessageAsync(message, func(err error) {
+		errChan <- err
+	})
+	err := <-errChan
+	return err
 }
 
 func (m *messageServiceImpl) GetMessage(key string) (messagepool.TaskMessage, error) {
 	return m.messagePool.GetMessage(key)
+}
+
+func (m *messageServiceImpl) GetAllKeys(userID uint64) ([]string, error) {
+	keysChan := make(chan []string, 1)
+	errChan := make(chan error, 1)
+
+	m.messagePool.GetAllKeysAsync(userID, func(keys []string, err error) {
+		if err != nil {
+			errChan <- err
+		} else {
+			keysChan <- keys
+		}
+	})
+
+	select {
+	case keys := <-keysChan:
+		return keys, nil
+	case err := <-errChan:
+		return nil, err
+	}
 }
