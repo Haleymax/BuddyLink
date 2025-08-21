@@ -6,8 +6,8 @@ import (
 
 type MessageService interface {
 	SetMessage(message messagepool.TaskMessage) error
-	GetMessage(key string) (messagepool.TaskMessage, error)
-	GetAllKeys(userID uint64) ([]string, error)
+	GetMessage(userId uint64, messageType string, messageId string) (messagepool.TaskMessage, error)
+	GetAllKeys(userID uint64, messageType string) ([]string, error)
 }
 
 type messageServiceImpl struct {
@@ -29,15 +29,27 @@ func (m *messageServiceImpl) SetMessage(message messagepool.TaskMessage) error {
 	return err
 }
 
-func (m *messageServiceImpl) GetMessage(key string) (messagepool.TaskMessage, error) {
-	return m.messagePool.GetMessage(key)
+func (m *messageServiceImpl) GetMessage(userId uint64, messageType string, messageId string) (messagepool.TaskMessage, error) {
+	var message messagepool.TaskMessage
+	var err error
+	errChan := make(chan error, 1)
+	m.messagePool.GetMessageAsync(userId, messageType, messageId, func(msg messagepool.TaskMessage, err error) {
+		if err != nil {
+			errChan <- err
+		} else {
+			message = msg
+			errChan <- nil
+		}
+	})
+	err = <-errChan
+	return message, err
 }
 
-func (m *messageServiceImpl) GetAllKeys(userID uint64) ([]string, error) {
+func (m *messageServiceImpl) GetAllKeys(userID uint64, messageType string) ([]string, error) {
 	keysChan := make(chan []string, 1)
 	errChan := make(chan error, 1)
 
-	m.messagePool.GetAllKeysAsync(userID, func(keys []string, err error) {
+	m.messagePool.GetAllKeysAsync(userID, messageType, func(keys []string, err error) {
 		if err != nil {
 			errChan <- err
 		} else {

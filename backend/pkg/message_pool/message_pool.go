@@ -74,8 +74,9 @@ func (mp *MessagePool) SetMessageAsync(message TaskMessage, callback func(err er
 	})
 }
 
-func (mp *MessagePool) GetMessageAsync(key string, callback func(TaskMessage, error)) {
+func (mp *MessagePool) GetMessageAsync(user_id uint64, message_type string, message_id string, callback func(TaskMessage, error)) {
 	mp.pool.Submit(func() {
+		key := fmt.Sprintf("%s:%s:%d:%s", mp.poolName, message_type, user_id, message_id)
 		msg, err := mp.GetMessageInternal(key)
 		if callback != nil {
 			callback(msg, err)
@@ -83,19 +84,19 @@ func (mp *MessagePool) GetMessageAsync(key string, callback func(TaskMessage, er
 	})
 }
 
-func (mp *MessagePool) GetAllKeysAsync(userId uint64, callback func([]string, error)) {
+func (mp *MessagePool) GetAllKeysAsync(userId uint64, messageType string, callback func([]string, error)) {
 	mp.pool.Submit(func() {
-		keys, err := mp.GetAllKeys(userId)
+		keys, err := mp.GetAllKeys(userId, messageType)
 		if callback != nil {
 			callback(keys, err)
 		}
 	})
 }
 
-func (mp *MessagePool) GetAllKeys(userId uint64) ([]string, error) {
+func (mp *MessagePool) GetAllKeys(userId uint64, messageType string) ([]string, error) {
 	var message_ids []string
 
-	pattern := fmt.Sprintf("%s:*:%d:*", mp.poolName, userId)
+	pattern := fmt.Sprintf("%s:%s:%d:*", mp.poolName, messageType, userId)
 
 	iter := mp.client.Scan(mp.ctx, 0, pattern, 0).Iterator()
 	for iter.Next(mp.ctx) {
