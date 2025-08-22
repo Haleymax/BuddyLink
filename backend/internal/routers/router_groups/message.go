@@ -10,9 +10,14 @@ func SetupMessageRoutes(router *gin.RouterGroup, controllers controllers.Message
 	messageGroup := router.Group("/messages")
 	messageGroup.Use(authMiddleware)
 	{
-		messageGroup.POST("/message", controllers.AddMessage)
-		messageGroup.GET("/message", controllers.GetMessage)
-		messageGroup.GET("/messages", controllers.GetAllMessages)
-		messageGroup.GET("/message/keys", controllers.GetAllKeys)
+		messageGroup.POST("", controllers.CreateMessage)
+		messageGroup.GET("/:id", controllers.GetMessageByID)
+		messageGroup.PUT("/:id", controllers.UpdateMessage)
+		messageGroup.DELETE("/:id", controllers.DeleteMessage)
+		messageGroup.GET("", controllers.GetAllMessages)
+		messageGroup.GET("/search", controllers.GetMessagesByParams)
+		messageGroup.GET("/sender/:sender_id", controllers.GetMessagesBySender)
+		messageGroup.GET("/receiver/:receiver_id", controllers.GetMessagesByReceiver)
+		messageGroup.GET("/type/:type", controllers.GetMessagesByType)
 	}
 }

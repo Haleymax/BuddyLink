@@ -2,7 +2,6 @@ package setup
 
 import (
 	"buddylink/internal/app/services"
-	messagepool "buddylink/pkg/message_pool"
 )
 
 type Services struct {
@@ -15,13 +14,11 @@ type Services struct {
 
 func NewServices(repo *Repositories) *Services {
 
-	mq := messagepool.GetMessagePool()
-
 	userService := services.NewUserService(repo.userRepository)
 	initService := services.NewInitService(repo.initRepository)
 	stmpService := services.NewStmpService()
 	socialService := services.NewSocialCardService(repo.socialCardRepository)
-	messageService := services.NewMessageService(mq)
+	messageService := services.NewMessageService(repo.messageRepository)
 
 	return &Services{
 		initService:    initService,
