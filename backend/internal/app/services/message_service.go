@@ -1,98 +1,79 @@
 package services
 
 import (
-	messagepool "buddylink/pkg/message_pool"
+	"buddylink/internal/app/models"
+	"buddylink/internal/app/repositories"
+	"fmt"
 )
 
 type MessageService interface {
-	SetMessage(message messagepool.TaskMessage) error
-	GetMessage(userId uint64, messageType string, messageId string) (messagepool.TaskMessage, error)
-	GetAllKeys(userID uint64, messageType string) ([]string, error)
-	GetAllMessage(userID uint64, messageType string) ([]messagepool.TaskMessage, error)
-	RemoveMessage(userId uint64, messageType string, messageId string) error
+	CreateMessage(message models.Message) error
+	GetMessageByID(messageID uint64) (models.Message, error)
+	GetMessagesBySender(senderID uint64) ([]models.Message, error)
+	GetMessagesByReceiver(receiverID uint64) ([]models.Message, error)
+	GetMessagesByType(messageType string) ([]models.Message, error)
+	GetMessagesByParams(params repositories.FindParam) ([]models.Message, error)
+	UpdateMessage(message models.Message) error
+	DeleteMessage(messageID uint64) error
+	GetAllMessages() ([]models.Message, error)
 }
 
 type messageServiceImpl struct {
-	messagePool *messagepool.MessagePool
+	messageRepo repositories.MessageRepository
 }
 
-func NewMessageService(messagePool *messagepool.MessagePool) MessageService {
+func NewMessageService(messageRepo repositories.MessageRepository) MessageService {
 	return &messageServiceImpl{
-		messagePool: messagePool,
+		messageRepo: messageRepo,
 	}
 }
 
-func (m *messageServiceImpl) SetMessage(message messagepool.TaskMessage) error {
-	errChan := make(chan error, 1)
-	m.messagePool.SetMessageAsync(message, func(err error) {
-		errChan <- err
-	})
-	err := <-errChan
-	return err
+func (m *messageServiceImpl) CreateMessage(message models.Message) error {
+	return m.messageRepo.Insert(message)
 }
 
-func (m *messageServiceImpl) GetMessage(userId uint64, messageType string, messageId string) (messagepool.TaskMessage, error) {
-	var message messagepool.TaskMessage
-	var err error
-	errChan := make(chan error, 1)
-	m.messagePool.GetMessageAsync(userId, messageType, messageId, func(msg messagepool.TaskMessage, err error) {
-		if err != nil {
-			errChan <- err
-		} else {
-			message = msg
-			errChan <- nil
-		}
-	})
-	err = <-errChan
-	return message, err
+func (m *messageServiceImpl) GetMessageByID(messageID uint64) (models.Message, error) {
+	return m.messageRepo.FindByID(messageID)
 }
 
-func (m *messageServiceImpl) GetAllKeys(userID uint64, messageType string) ([]string, error) {
-	keysChan := make(chan []string, 1)
-	errChan := make(chan error, 1)
-
-	m.messagePool.GetAllKeysAsync(userID, messageType, func(keys []string, err error) {
-		if err != nil {
-			errChan <- err
-		} else {
-			keysChan <- keys
-		}
-	})
-
-	select {
-	case keys := <-keysChan:
-		return keys, nil
-	case err := <-errChan:
-		return nil, err
-	}
+func (m *messageServiceImpl) GetMessagesBySender(senderID uint64) ([]models.Message, error) {
+	return m.messageRepo.FindAllBysenderID(senderID)
 }
 
-func (m *messageServiceImpl) GetAllMessage(userID uint64, messageType string) ([]messagepool.TaskMessage, error) {
-	keys, err := m.GetAllKeys(userID, messageType)
+func (m *messageServiceImpl) GetMessagesByReceiver(receiverID uint64) ([]models.Message, error) {
+	return m.messageRepo.FindAllByReceiverID(receiverID)
+}
+
+func (m *messageServiceImpl) GetMessagesByType(messageType string) ([]models.Message, error) {
+	return m.messageRepo.FindAllByType(messageType)
+}
+
+func (m *messageServiceImpl) GetMessagesByParams(params repositories.FindParam) ([]models.Message, error) {
+	return m.messageRepo.FindByParams(params)
+}
+
+func (m *messageServiceImpl) UpdateMessage(message models.Message) error {
+	exists, err := m.messageRepo.Exist(message.ID)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	var messages []messagepool.TaskMessage
-	for _, key := range keys {
-		message, err := m.GetMessage(userID, messageType, key)
-		if err != nil {
-			return nil, err
-		}
-		messages = append(messages, message)
+	if !exists {
+		return fmt.Errorf("message with ID %d does not exist", message.ID)
 	}
-
-	return messages, nil
+	return m.messageRepo.Update(message)
 }
 
-func (m *messageServiceImpl) RemoveMessage(userId uint64, messageType string, messageId string) error {
-	errChan := make(chan error, 1)
-	m.messagePool.RemoveMessage(userId, messageType, messageId, func(result int64, err error) {
-		if err != nil {
-			errChan <- err
-		} else {
-			errChan <- nil
-		}
-	})
-	return <-errChan
+func (m *messageServiceImpl) DeleteMessage(messageID uint64) error {
+	exists, err := m.messageRepo.Exist(messageID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("message with ID %d does not exist", messageID)
+	}
+	return m.messageRepo.Delete(messageID)
+}
+
+func (m *messageServiceImpl) GetAllMessages() ([]models.Message, error) {
+	return m.messageRepo.FindAll()
 }

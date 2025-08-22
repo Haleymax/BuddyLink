@@ -31,6 +31,10 @@ func (i initRepositoryImpl) Init() error {
 	if err4 != nil {
 		return err4
 	}
+	err5 := i.db.AutoMigrate(models.Message{})
+	if err5 != nil {
+		return err5
+	}
 	return nil
 }
 
