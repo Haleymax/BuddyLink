@@ -240,6 +240,8 @@ import { getSocialCards } from '../../api/social-cards'
 import type { ApiResponse } from '../../api/apiResponse'
 import { useAuthStore } from '../../stores/auth.store'
 import BuddyCard from '../../components/BuddyCard.vue'
+import type { BaseMessage } from '../../model/message'
+import { addMessage, getAllMessageByUserId } from '../../api/message'
 
 const message = useMessage()
 const authStore = useAuthStore()
@@ -333,6 +335,19 @@ const getActivityTagType = (type: string) => {
   return typeMap[type] || 'default'
 }
 
+
+const Message = ref<BaseMessage | null>({
+  sender_id: authStore.user?.id ?? 0,
+  receiver_id: 0,
+  type: 'apply',
+  data: {
+    card_id: 0
+  }
+})
+
+const appliedMessages = ref<BaseMessage[] | null>(null)
+
+
 // 禁用过去的日期
 const isDateDisabled = (timestamp: number) => {
   const today = new Date()
@@ -386,8 +401,22 @@ const handleActivityClick = (activity: SocialCard) => {
 
 const joinActivity = async (activity: SocialCard) => {
   console.log('加入活动:', activity)
-  message.success(`已申请加入活动：${activity.title}`)
-  // 这里应该调用加入活动的API
+  Message.value = {
+    sender_id: authStore.user?.id ?? 0,
+    receiver_id: activity.user_id,
+    type: 'apply',
+    data: {
+      "data": "Apply to join activity"
+    },
+  }
+
+  // const response = await addMessage(authStore.token ?? '', Message.value) as unknown as ApiResponse
+  // message.success(`发送消息成功：${response.message}`)
+  
+
+
+  const response2 = await getAllMessageByUserId(authStore.token ?? '', activity.user_id) as unknown as ApiResponse
+  appliedMessages.value = response2.data
 }
 
 const viewActivityDetail = (activity: SocialCard) => {
