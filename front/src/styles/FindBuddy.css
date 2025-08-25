@@ -178,6 +178,24 @@
   box-shadow: none !important;
 }
 
+/* 已申请活动的按钮样式 */
+.applied-activity-btn {
+  background-color: #52c41a !important;
+  border-color: #52c41a !important;
+  color: #ffffff !important;
+  cursor: not-allowed !important;
+  opacity: 0.8 !important;
+}
+
+.applied-activity-btn:hover {
+  background-color: #52c41a !important;
+  border-color: #52c41a !important;
+  color: #ffffff !important;
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 0.8 !important;
+}
+
 .activity-header {
   display: flex;
   justify-content: space-between;

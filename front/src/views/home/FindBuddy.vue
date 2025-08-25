@@ -167,18 +167,25 @@
                 type="primary" 
                 size="small" 
                 @click.stop="joinActivity(activity)"
-                :disabled="activity.people_required && activity.people_count >= activity.people_required || isOwnActivity(activity)"
-                :class="{ 'own-activity-btn': isOwnActivity(activity) }"
+                :disabled="activity.people_required && activity.people_count >= activity.people_required || isOwnActivity(activity) || isActivityApplied(activity)"
+                :class="{ 
+                  'own-activity-btn': isOwnActivity(activity),
+                  'applied-activity-btn': isActivityApplied(activity)
+                }"
               >
                 <template #icon>
                   <n-icon>
-                    <svg viewBox="0 0 24 24">
+                    <svg viewBox="0 0 24 24" v-if="!isActivityApplied(activity)">
                       <path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                    </svg>
+                    <svg viewBox="0 0 24 24" v-else>
+                      <path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
                     </svg>
                   </n-icon>
                 </template>
                 {{ 
                   isOwnActivity(activity) ? '我的活动' :
+                  isActivityApplied(activity) ? '已申请' :
                   (activity.people_required && activity.people_count >= activity.people_required ? '已满员' : '加入')
                 }}
               </n-button>
@@ -240,6 +247,8 @@ import { getSocialCards } from '../../api/social-cards'
 import type { ApiResponse } from '../../api/apiResponse'
 import { useAuthStore } from '../../stores/auth.store'
 import BuddyCard from '../../components/BuddyCard.vue'
+import type { BaseMessage } from '../../model/message'
+import { addMessage, getAllMessageByUserId } from '../../api/message'
 
 const message = useMessage()
 const authStore = useAuthStore()
@@ -333,6 +342,19 @@ const getActivityTagType = (type: string) => {
   return typeMap[type] || 'default'
 }
 
+
+const Message = ref<BaseMessage | null>({
+  sender_id: authStore.user?.id ?? 0,
+  receiver_id: 0,
+  type: 'apply',
+  data: {
+    card_id: 0
+  }
+})
+
+const appliedMessages = ref<BaseMessage[]>([])
+
+
 // 禁用过去的日期
 const isDateDisabled = (timestamp: number) => {
   const today = new Date()
@@ -370,6 +392,18 @@ const isOwnActivity = (activity: SocialCard) => {
   return authStore.user?.id === activity.user_id
 }
 
+// 判断是否已经申请过该活动
+const isActivityApplied = (activity: SocialCard) => {
+  if (!appliedMessages.value || appliedMessages.value.length === 0) return false
+  
+  // 查找是否有对该活动发布者发送的申请消息
+  return appliedMessages.value.some(msg => 
+    msg.sender_id === authStore.user?.id && 
+    msg.receiver_id === activity.user_id && 
+    msg.type === 'apply'
+  )
+}
+
 const goToToday = () => {
   selectedDate.value = Date.now()
 }
@@ -386,8 +420,67 @@ const handleActivityClick = (activity: SocialCard) => {
 
 const joinActivity = async (activity: SocialCard) => {
   console.log('加入活动:', activity)
-  message.success(`已申请加入活动：${activity.title}`)
-  // 这里应该调用加入活动的API
+  
+  // 如果已经申请过，直接返回
+  if (isActivityApplied(activity)) {
+    message.info('您已经申请过这个活动了')
+    return
+  }
+  
+  Message.value = {
+    sender_id: authStore.user?.id ?? 0,
+    receiver_id: activity.user_id,
+    type: 'apply',
+    data: {
+      "data": "Apply to join activity"
+    },
+  }
+
+  try {
+    const response = await addMessage(authStore.token ?? '', Message.value) as unknown as ApiResponse
+
+    if (response.code !== 200) {
+      message.error(`发送消息失败：${response.message}`)
+      return
+    } 
+    
+    message.success(`发送消息成功：${response.message}`)
+    
+    // 刷新申请消息列表
+    await FindAllAppliedMessages()
+    
+  } catch (error) {
+    console.error('申请活动失败:', error)
+    message.error('申请活动失败')
+  }
+}
+
+
+const FindAllAppliedMessages = async () => {
+  try {
+    const response = await getAllMessageByUserId(authStore.token ?? '', authStore.user?.id ?? 0) as unknown as ApiResponse
+    
+    console.log('API 响应:', response) // 调试信息
+    
+    if (response.code === 200) {
+      // 确保 response.data 是数组
+      if (Array.isArray(response.data)) {
+        appliedMessages.value = response.data as BaseMessage[]
+      } else {
+        console.warn('API 返回的数据不是数组:', response.data)
+        appliedMessages.value = []
+      }
+    } else {
+      message.error(response.message || '获取申请消息失败')
+      appliedMessages.value = []
+    }
+  } catch (error) {
+    console.error('获取申请消息失败:', error)
+    message.error('获取申请消息失败')
+    appliedMessages.value = []
+  }
+  
+  return appliedMessages.value
 }
 
 const viewActivityDetail = (activity: SocialCard) => {
@@ -448,5 +541,6 @@ const loadActivities = async () => {
 
 onMounted(() => {
   loadActivities()
+  FindAllAppliedMessages()
 })
 </script>
