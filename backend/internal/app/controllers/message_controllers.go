@@ -284,3 +284,42 @@ func (ctrl *MessageController) GetAllMessages(c *gin.Context) {
 		"data":    messages,
 	})
 }
+
+func (ctrl *MessageController) GetMessagesByIdAndType(c *gin.Context) {
+	senderIDStr := c.Query("id")
+	messageType := c.Query("type")
+	status := c.Query("status")
+
+	log.Printf("Received parameters - sender_id: %s, type: %s, status: %s", senderIDStr, messageType, status)
+
+	senderId, err := strconv.ParseUint(senderIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "Invalid sender ID",
+			"data":    nil,
+		})
+		return
+	}
+
+	var params repositories.FindParam
+	params.SenderID = senderId
+	params.Type = messageType
+	params.Status = status
+
+	messages, err := ctrl.messageService.GetMessagesByParams(params)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Failed to retrieve message: " + err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "Message retrieved successfully",
+		"data":    messages,
+	})
+}

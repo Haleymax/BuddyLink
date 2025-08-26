@@ -19,5 +19,6 @@ func SetupMessageRoutes(router *gin.RouterGroup, controllers controllers.Message
 		messageGroup.GET("/sender/:sender_id", controllers.GetMessagesBySender)
 		messageGroup.GET("/receiver/:receiver_id", controllers.GetMessagesByReceiver)
 		messageGroup.GET("/type/:type", controllers.GetMessagesByType)
+		messageGroup.GET("/mine", controllers.GetMessagesByIdAndType)
 	}
 }
