@@ -4,4 +4,5 @@ export interface BaseMessage {
     receiver_id: number
     type: 'apply' | 'comment' | 'like' | 'follow' | 'system'
     data: any
+    isRead: boolean
 }
