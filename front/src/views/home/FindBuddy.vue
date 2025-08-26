@@ -248,12 +248,12 @@ import type { ApiResponse } from '../../api/apiResponse'
 import { useAuthStore } from '../../stores/auth.store'
 import BuddyCard from '../../components/BuddyCard.vue'
 import type { BaseMessage } from '../../model/message'
-import { addMessage, getAllMessageByUserId } from '../../api/message'
+import { addMessage, getAllMessageByUserId, getMineMessage } from '../../api/message'
 
 const message = useMessage()
 const authStore = useAuthStore()
 
-// 响应式数据
+
 const selectedDate = ref<number>(Date.now())
 const filterType = ref<string>('')
 const filterGender = ref<string>('')
@@ -421,7 +421,6 @@ const handleActivityClick = (activity: SocialCard) => {
 const joinActivity = async (activity: SocialCard) => {
   console.log('加入活动:', activity)
   
-  // 如果已经申请过，直接返回
   if (isActivityApplied(activity)) {
     message.info('您已经申请过这个活动了')
     return
@@ -445,10 +444,9 @@ const joinActivity = async (activity: SocialCard) => {
     } 
     
     message.success(`发送消息成功：${response.message}`)
-    
-    // 刷新申请消息列表
-    await FindAllAppliedMessages()
-    
+
+    await getMineMessage(authStore.token ?? '', authStore.user?.id ?? 0, 'apply', 'active')
+
   } catch (error) {
     console.error('申请活动失败:', error)
     message.error('申请活动失败')
@@ -458,12 +456,11 @@ const joinActivity = async (activity: SocialCard) => {
 
 const FindAllAppliedMessages = async () => {
   try {
-    const response = await getAllMessageByUserId(authStore.token ?? '', authStore.user?.id ?? 0) as unknown as ApiResponse
-    
+    const response = await getMineMessage(authStore.token ?? '', authStore.user?.id ?? 0, 'apply', 'active') as unknown as ApiResponse
+
     console.log('API 响应:', response) // 调试信息
     
     if (response.code === 200) {
-      // 确保 response.data 是数组
       if (Array.isArray(response.data)) {
         appliedMessages.value = response.data as BaseMessage[]
       } else {
@@ -499,7 +496,6 @@ const handleDeleteActivity = () => {
 }
 
 const goToCreateActivity = () => {
-  // 这里可以跳转到创建活动页面
   message.info('即将跳转到创建活动页面')
 }
 
@@ -507,7 +503,6 @@ const goToCreateActivity = () => {
 const loadActivities = async () => {
   try {
     loading.value = true
-    // 使用示例数据
     const response = await getSocialCards({token: authStore.token ?? ''}) as unknown as ApiResponse
     if (response.code !== 200) {
       message.error(response.message || '获取卡片失败')
