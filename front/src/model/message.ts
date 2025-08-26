@@ -5,4 +5,5 @@ export interface BaseMessage {
     type: 'apply' | 'comment' | 'like' | 'follow' | 'system'
     data: any
     isRead: boolean
+    action: 'create' | 'update'
 }

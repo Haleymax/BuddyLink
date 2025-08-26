@@ -5,7 +5,7 @@
     @click="handleClick"
   >
     <div class="message-avatar">
-      <n-avatar :size="48">
+      <n-avatar :size="40">
         <n-icon>
           <svg viewBox="0 0 24 24" v-if="message.type === 'system'">
             <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
@@ -24,32 +24,30 @@
     <div class="message-content">
       <div class="message-header">
         <div class="sender-name">{{ getSenderName() }}</div>
-        <div class="message-time">{{ formatTime(message.created_at) }}</div>
+        <div class="message-type" :class="getTypeClass()">
+          {{ getTypeLabel() }}
+        </div>
       </div>
-      <div class="message-text">{{ getMessageContent() }}</div>
-      <div class="message-type" :class="getTypeClass()">
-        {{ getTypeLabel() }}
-      </div>
+      <div class="message-text">{{ getMessagePreview() }}</div>
+      <div class="message-time">{{ formatTime(message.created_at) }}</div>
     </div>
     
-    <div class="message-actions" @click.stop>
-      <n-dropdown :options="menuOptions" @select="handleAction">
-        <n-button quaternary circle size="small">
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-              </svg>
-            </n-icon>
-          </template>
-        </n-button>
-      </n-dropdown>
+    <div class="message-indicator">
+      <n-icon v-if="!message.is_read" size="8" color="#ff4d4f">
+        <svg viewBox="0 0 24 24">
+          <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+        </svg>
+      </n-icon>
+      <n-icon size="16" color="#8c8c8c">
+        <svg viewBox="0 0 24 24">
+          <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
+        </svg>
+      </n-icon>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
 import type { BaseMessage } from '../model/message';
 
 // 扩展 BaseMessage 接口以包含额外的显示字段
@@ -67,7 +65,6 @@ interface Props {
 
 interface Emits {
   (e: 'click', message: DisplayMessage): void;
-  (e: 'action', action: string, message: DisplayMessage): void;
 }
 
 const props = defineProps<Props>();
@@ -79,24 +76,33 @@ const getSenderName = () => {
     case 'system':
       return '系统通知';
     case 'apply':
-      return `用户 ${props.message.sender_id}`;
+      return `用户申请`;
     default:
       return `用户 ${props.message.sender_id}`;
   }
 };
 
-// 获取消息内容
-const getMessageContent = () => {
+// 获取消息预览内容（简短版本）
+const getMessagePreview = () => {
   const data = props.message.data;
+  let content = '';
+  
   if (typeof data === 'string') {
-    return data;
+    content = data;
   } else if (typeof data === 'object' && data !== null) {
     if (data.data) {
-      return data.data;
+      content = data.data;
+    } else if (data.message) {
+      content = data.message;
+    } else {
+      content = JSON.stringify(data);
     }
-    return JSON.stringify(data);
+  } else {
+    content = '暂无内容';
   }
-  return '暂无内容';
+  
+  // 限制预览内容长度
+  return content.length > 50 ? content.substring(0, 50) + '...' : content;
 };
 
 // 获取消息类型样式
@@ -155,47 +161,18 @@ const formatTime = (timeStr: string) => {
   }
 };
 
-// 计算菜单选项
-const menuOptions = computed(() => {
-  const options = [];
-  
-  if (!props.message.is_read) {
-    options.push({
-      label: '标记为已读',
-      key: 'mark-read'
-    });
-  }
-  
-  options.push({
-    label: '查看详情',
-    key: 'view-detail'
-  });
-  
-  options.push({
-    label: '删除消息',
-    key: 'delete'
-  });
-  
-  return options;
-});
-
 // 处理点击事件
 const handleClick = () => {
   emit('click', props.message);
-};
-
-// 处理操作事件
-const handleAction = (action: string) => {
-  emit('action', action, props.message);
 };
 </script>
 
 <style scoped>
 .message-card {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -204,17 +181,15 @@ const handleAction = (action: string) => {
 
 .message-card:hover {
   background: #fafafa;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .message-card.unread {
-  background: #e6f4ff;
-  border-left: 4px solid #1890ff;
+  background: #f6ffed;
+  border-left: 4px solid #52c41a;
 }
 
 .message-card.unread:hover {
-  background: #d6f2ff;
+  background: #f0f9ff;
 }
 
 .message-card:last-child {
@@ -230,66 +205,37 @@ const handleAction = (action: string) => {
   position: absolute;
   top: -2px;
   right: -2px;
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #ff4d4f;
+  background: #52c41a;
   border: 2px solid white;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(255, 77, 79, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0);
-  }
 }
 
 .message-content {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .message-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .sender-name {
   font-weight: 600;
   color: #262626;
-  font-size: 16px;
-}
-
-.message-time {
-  color: #8c8c8c;
   font-size: 14px;
-}
-
-.message-text {
-  color: #595959;
-  font-size: 14px;
-  line-height: 1.5;
-  margin-bottom: 8px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .message-type {
   display: inline-block;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
   font-weight: 500;
 }
 
@@ -318,20 +264,46 @@ const handleAction = (action: string) => {
   color: #722ed1;
 }
 
-.message-actions {
+.message-text {
+  color: #595959;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-time {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.message-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
   .message-card {
-    padding: 12px;
+    padding: 10px 12px;
   }
   
   .message-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 2px;
+  }
+  
+  .sender-name {
+    font-size: 13px;
+  }
+  
+  .message-text {
+    font-size: 12px;
   }
 }
 </style>
