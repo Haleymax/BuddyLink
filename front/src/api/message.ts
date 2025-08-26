@@ -22,3 +22,18 @@ export const getAllMessageByUserId = (token: string, userId: number) => {
     }
   });
 }
+
+export const getMineMessage = (token: string, id: number, type: string, status: string) => {
+  return request({
+    url: `/api/v1/messages/mine`,
+    method: "GET",
+    headers: {
+      Authorization: token
+    },
+    params: {
+      "id": id,
+      "type": type,
+      "status": status
+    }
+  });
+}
