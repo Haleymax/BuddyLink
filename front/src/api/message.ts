@@ -37,3 +37,13 @@ export const getMineMessage = (token: string, id: number, type: string, status: 
     }
   });
 }
+
+export const deleteMessageById = (token: string, id: number) => {
+  return request({
+    url: `/api/v1/messages/${id}`,
+    method: "DELETE",
+    headers: {
+      Authorization: token
+    }
+  });
+}

@@ -1,8 +1,8 @@
 <template>
   <div 
     class="message-card"
-    :class="{ 'unread': !message.is_read }"
-    @click="handleClick"
+    :class="{ 'unread': !message.isRead }"
+    @click="handleCardClick"
   >
     <div class="message-avatar">
       <n-avatar :size="40">
@@ -18,7 +18,7 @@
           </svg>
         </n-icon>
       </n-avatar>
-      <div v-if="!message.is_read" class="unread-dot"></div>
+      <div v-if="!message.isRead" class="unread-dot"></div>
     </div>
     
     <div class="message-content">
@@ -33,7 +33,7 @@
     </div>
     
     <div class="message-indicator">
-      <n-icon v-if="!message.is_read" size="8" color="#ff4d4f">
+      <n-icon v-if="!message.isRead" size="8" color="#ff4d4f">
         <svg viewBox="0 0 24 24">
           <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
         </svg>
@@ -44,31 +44,180 @@
         </svg>
       </n-icon>
     </div>
+
+    <!-- 消息详情模态框 -->
+    <n-modal 
+      v-model:show="showDetailModal" 
+      preset="card" 
+      title="消息详情"
+      style="width: 600px; max-width: 90vw;"
+      :mask-closable="true"
+    >
+      <div class="message-detail">
+        <div class="detail-header">
+          <div class="detail-sender">
+            <n-avatar :size="64">
+              <n-icon>
+                <svg viewBox="0 0 24 24" v-if="message.type === 'system'">
+                  <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                </svg>
+                <svg viewBox="0 0 24 24" v-else-if="message.type === 'apply'">
+                  <path fill="currentColor" d="M16,4C18.21,4 20,5.79 20,8C20,10.21 18.21,12 16,12C13.79,12 12,10.21 12,8C12,5.79 13.79,4 16,4M16,14C18.67,14 24,15.34 24,18V20H8V18C8,15.34 13.33,14 16,14Z"/>
+                </svg>
+                <svg viewBox="0 0 24 24" v-else>
+                  <path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+                </svg>
+              </n-icon>
+            </n-avatar>
+            <div class="sender-info">
+              <div class="sender-name-detail">{{ getSenderName() }}</div>
+              <div class="message-time-detail">{{ formatTime(message.created_at) }}</div>
+              <n-tag :type="getTypeTagType()" size="small">
+                {{ getTypeLabel() }}
+              </n-tag>
+              <n-tag v-if="message.action" :type="getActionTagType()" size="small">
+                {{ getActionLabel() }}
+              </n-tag>
+            </div>
+          </div>
+        </div>
+        
+        <div class="detail-content">
+          <p class="message-full-content">{{ getMessageContent() }}</p>
+          <div v-if="message.data && typeof message.data === 'object'" class="message-data">
+            <n-divider>详细信息</n-divider>
+            <div class="data-content">
+              <pre>{{ JSON.stringify(message.data, null, 2) }}</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-actions">
+          <n-space>
+            <n-button 
+              v-if="!message.isRead" 
+              type="primary" 
+              @click="handleMarkRead"
+            >
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21H15A1,1 0 0,1 15,22H9A1,1 0 0,1 9,21Z"/>
+                  </svg>
+                </n-icon>
+              </template>
+              标记已读
+            </n-button>
+            
+            <!-- 基于 action 的功能按钮 -->
+            <n-button v-if="shouldShowCreateButton" type="info" @click="handleCreate">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                  </svg>
+                </n-icon>
+              </template>
+              创建操作
+            </n-button>
+            
+            <n-button v-if="shouldShowUpdateButton" type="warning" @click="handleUpdate">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
+                  </svg>
+                </n-icon>
+              </template>
+              更新操作
+            </n-button>
+            
+            <n-button v-if="shouldShowDoneButton" type="success" @click="handleDone">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+                  </svg>
+                </n-icon>
+              </template>
+              完成操作
+            </n-button>
+            
+            <!-- 基于消息类型的按钮 -->
+            <n-button v-if="canApprove()" type="success" @click="handleApprove">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+                  </svg>
+                </n-icon>
+              </template>
+              同意申请
+            </n-button>
+            
+            <n-button v-if="canReject()" type="error" @click="handleReject">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                  </svg>
+                </n-icon>
+              </template>
+              拒绝申请
+            </n-button>
+            
+            <n-button @click="handleReply">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M10,9V5L3,12L10,19V14.9C15,14.9 18.5,16.5 21,20C20,15 17,10 10,9Z"/>
+                  </svg>
+                </n-icon>
+              </template>
+              回复
+            </n-button>
+            
+            <n-button quaternary type="error" @click="handleDelete">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z"/>
+                  </svg>
+                </n-icon>
+              </template>
+              删除消息
+            </n-button>
+          </n-space>
+        </div>
+      </div>
+    </n-modal>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { ref, computed } from 'vue';
 import type { BaseMessage } from '../model/message';
-
-// 扩展 BaseMessage 接口以包含额外的显示字段
-interface DisplayMessage extends BaseMessage {
-  id: number;
-  created_at: string;
-  updated_at: string;
-  is_read: boolean;
-  status?: 'pending' | 'approved' | 'rejected';
-}
+import '../styles/MessageCard.css';
 
 interface Props {
-  message: DisplayMessage;
+  message: BaseMessage;
 }
 
 interface Emits {
-  (e: 'click', message: DisplayMessage): void;
+  (e: 'mark-read', message: BaseMessage): void;
+  (e: 'approve', message: BaseMessage): void;
+  (e: 'reject', message: BaseMessage): void;
+  (e: 'reply', message: BaseMessage): void;
+  (e: 'delete', message: BaseMessage): void;
+  (e: 'create', message: BaseMessage): void;
+  (e: 'update', message: BaseMessage): void;
+  (e: 'done', message: BaseMessage): void;
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
+
+const showDetailModal = ref(false);
 
 // 获取发送者名称
 const getSenderName = () => {
@@ -103,6 +252,22 @@ const getMessagePreview = () => {
   
   // 限制预览内容长度
   return content.length > 50 ? content.substring(0, 50) + '...' : content;
+};
+
+// 获取完整消息内容
+const getMessageContent = () => {
+  const data = props.message.data;
+  if (typeof data === 'string') {
+    return data;
+  } else if (typeof data === 'object' && data !== null) {
+    if (data.data) {
+      return data.data;
+    } else if (data.message) {
+      return data.message;
+    }
+    return JSON.stringify(data);
+  }
+  return '暂无内容';
 };
 
 // 获取消息类型样式
@@ -141,6 +306,66 @@ const getTypeLabel = () => {
   }
 };
 
+// 获取类型标签颜色
+const getTypeTagType = () => {
+  switch (props.message.type) {
+    case 'system':
+      return 'info';
+    case 'apply':
+      return 'warning';
+    case 'comment':
+      return 'success';
+    case 'like':
+      return 'error';
+    case 'follow':
+      return 'default';
+    default:
+      return 'default';
+  }
+};
+
+// 获取 action 标签
+const getActionLabel = () => {
+  switch (props.message.action) {
+    case 'create':
+      return '创建';
+    case 'update':
+      return '更新';
+    case 'done':
+      return '已完成';
+    default:
+      return '';
+  }
+};
+
+// 获取 action 标签颜色
+const getActionTagType = () => {
+  switch (props.message.action) {
+    case 'create':
+      return 'info';
+    case 'update':
+      return 'warning';
+    case 'done':
+      return 'success';
+    default:
+      return 'default';
+  }
+};
+
+// 检查按钮显示状态
+const shouldShowCreateButton = computed(() => props.message.action === 'create');
+const shouldShowUpdateButton = computed(() => props.message.action === 'update');
+const shouldShowDoneButton = computed(() => props.message.action === 'done');
+
+// 判断是否可以同意/拒绝
+const canApprove = () => {
+  return props.message.type === 'apply';
+};
+
+const canReject = () => {
+  return props.message.type === 'apply';
+};
+
 // 格式化时间
 const formatTime = (timeStr: string) => {
   const time = new Date(timeStr);
@@ -161,149 +386,45 @@ const formatTime = (timeStr: string) => {
   }
 };
 
-// 处理点击事件
-const handleClick = () => {
-  emit('click', props.message);
+// 处理卡片点击事件
+const handleCardClick = () => {
+  showDetailModal.value = true;
+  if (!props.message.isRead) {
+    emit('mark-read', props.message);
+  }
+};
+
+// 事件处理
+const handleMarkRead = () => {
+  emit('mark-read', props.message);
+};
+
+const handleApprove = () => {
+  emit('approve', props.message);
+};
+
+const handleReject = () => {
+  emit('reject', props.message);
+};
+
+const handleReply = () => {
+  emit('reply', props.message);
+};
+
+const handleDelete = () => {
+  emit('delete', props.message);
+  showDetailModal.value = false;
+};
+
+const handleCreate = () => {
+  emit('create', props.message);
+};
+
+const handleUpdate = () => {
+  emit('update', props.message);
+};
+
+const handleDone = () => {
+  emit('done', props.message);
 };
 </script>
-
-<style scoped>
-.message-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.message-card:hover {
-  background: #fafafa;
-}
-
-.message-card.unread {
-  background: #f6ffed;
-  border-left: 4px solid #52c41a;
-}
-
-.message-card.unread:hover {
-  background: #f0f9ff;
-}
-
-.message-card:last-child {
-  border-bottom: none;
-}
-
-.message-avatar {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.unread-dot {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #52c41a;
-  border: 2px solid white;
-}
-
-.message-content {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.sender-name {
-  font-weight: 600;
-  color: #262626;
-  font-size: 14px;
-}
-
-.message-type {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.type-system {
-  background: #e6f7ff;
-  color: #1890ff;
-}
-
-.type-apply {
-  background: #fff7e6;
-  color: #fa8c16;
-}
-
-.type-comment {
-  background: #f6ffed;
-  color: #52c41a;
-}
-
-.type-like {
-  background: #fff0f6;
-  color: #eb2f96;
-}
-
-.type-follow {
-  background: #f9f0ff;
-  color: #722ed1;
-}
-
-.message-text {
-  color: #595959;
-  font-size: 13px;
-  line-height: 1.4;
-  margin-bottom: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.message-time {
-  color: #8c8c8c;
-  font-size: 12px;
-}
-
-.message-indicator {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .message-card {
-    padding: 10px 12px;
-  }
-  
-  .message-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-  }
-  
-  .sender-name {
-    font-size: 13px;
-  }
-  
-  .message-text {
-    font-size: 12px;
-  }
-}
-</style>
