@@ -1,0 +1,279 @@
+.message-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.message-card:hover {
+  background: #fafafa;
+}
+
+.message-card.unread {
+  background: #f6ffed;
+  border-left: 4px solid #52c41a;
+}
+
+.message-card.unread:hover {
+  background: #f0f9ff;
+}
+
+.message-card:last-child {
+  border-bottom: none;
+}
+
+.message-avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.unread-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #52c41a;
+  border: 2px solid white;
+}
+
+.message-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.sender-name {
+  font-weight: 600;
+  color: #262626;
+  font-size: 14px;
+}
+
+.message-type {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.type-system {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.type-apply {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.type-comment {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.type-like {
+  background: #fff0f6;
+  color: #eb2f96;
+}
+
+.type-follow {
+  background: #f9f0ff;
+  color: #722ed1;
+}
+
+.message-text {
+  color: #595959;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-time {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.message-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* 消息详情模态框样式 */
+.message-detail {
+  padding: 0;
+}
+
+.detail-header {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  border: 1px solid rgba(240, 240, 240, 0.5);
+}
+
+.detail-sender {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.sender-info {
+  flex: 1;
+}
+
+.sender-name-detail {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.message-time-detail {
+  color: #8c8c8c;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.detail-content {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(240, 240, 240, 0.8);
+}
+
+.message-full-content {
+  margin: 0 0 16px 0;
+  line-height: 1.6;
+  color: #374151;
+  font-size: 15px;
+}
+
+.message-data {
+  margin-top: 16px;
+}
+
+.data-content {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.data-content pre {
+  margin: 0;
+  font-size: 12px;
+  color: #495057;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.detail-actions {
+  padding: 16px;
+  border-top: 1px solid #f0f0f0;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 0 0 12px 12px;
+}
+
+/* 按钮样式增强 */
+.detail-actions :deep(.n-button) {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.detail-actions :deep(.n-button:hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.detail-actions :deep(.n-button--info-type) {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border: none;
+}
+
+.detail-actions :deep(.n-button--warning-type) {
+  background: linear-gradient(135deg, #fa8c16 0%, #d48806 100%);
+  border: none;
+}
+
+.detail-actions :deep(.n-button--primary-type) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.detail-actions :deep(.n-button--success-type) {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  border: none;
+}
+
+.detail-actions :deep(.n-button--error-type) {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  border: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .message-card {
+    padding: 10px 12px;
+  }
+  
+  .message-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  
+  .sender-name {
+    font-size: 13px;
+  }
+  
+  .message-text {
+    font-size: 12px;
+  }
+  
+  .detail-header {
+    padding: 12px;
+  }
+  
+  .detail-sender {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .sender-name-detail {
+    font-size: 16px;
+  }
+  
+  .detail-content {
+    padding: 12px;
+  }
+  
+  .message-full-content {
+    font-size: 14px;
+  }
+  
+  .detail-actions {
+    padding: 12px;
+  }
+}
