@@ -11,6 +11,7 @@ type FindParam struct {
 	SenderID   uint64
 	ReceiverID uint64
 	Type       string
+	Status     string
 }
 
 type MessageRepository interface {
@@ -85,6 +86,9 @@ func (m *MessageRepositoryImpl) FindByParams(params FindParam) ([]models.Message
 
 	if params.Type != "" {
 		query = query.Where("type = ?", params.Type)
+	}
+	if params.Status != "" {
+		query = query.Where("status = ?", params.Status)
 	}
 
 	err := query.Find(&messages).Error
